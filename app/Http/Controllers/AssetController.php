@@ -19,6 +19,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Mail\AssetAssignedMail;
+use Illuminate\Support\Facades\Mail;
+
 
 class AssetController extends Controller
 {
@@ -83,7 +86,7 @@ class AssetController extends Controller
      * @param StoreAssetRequest $request
      * @return RedirectResponse
      */
-    public function store(StoreAssetRequest $request)
+public function store(StoreAssetRequest $request)
     {
         $manufacturer_contract_type = $request->input("manufacturer_contract_type");
         $asset = new Asset;
@@ -106,14 +109,28 @@ class AssetController extends Controller
             "links_to_id" => $request->input("links_to"),
             "version" => $request->input("version")
         ]);
+        
         $asset->save();
+
+        $manager = User::find($request->input("manager"));
+        
+        if ($manager && !empty($manager->email)) {
+            try {
+                Mail::to($manager->email)->send(new AssetAssignedMail($asset));
+            } catch (\Exception $e) {
+                Log::channel("application")->error("Falha ao enviar e-mail: " . $e->getMessage());
+            }
+        }
+
         AssetLog::create([
             "user_id" => $request->user()->id,
             "asset_id" => $asset->id,
             "operation_type" => AssetOperationType::CREATE,
             "ip" => $request->ip()
         ]);
+
         Log::channel("application")->info(sprintf("Create Asset %d", $asset->id));
+        
         return redirect()->route("assets.index")->with("status", __("Asset Created"));
     }
 

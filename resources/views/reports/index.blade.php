@@ -17,6 +17,12 @@
                                         aria-controls="asset_list" aria-selected="false">{{__("Asset List")}}
                                 </button>
                             </li>
+                            <li role="presentation">
+                                <button class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
+                                        id="annual-reports-tab" data-tabs-target="#annual_reports" type="button" role="tab"
+                                        aria-controls="annual_reports" aria-selected="false">{{__("CNCS Annual Reports")}}
+                                </button>
+                            </li>
                             <li class="mr-2" role="presentation">
                                 <button
                                         class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
@@ -34,6 +40,7 @@
                             </li>
                         </ul>
                     </div>
+                    
                     <div id="tabs">
                         <div class="hidden p-4" id="asset_list" role="tabpanel"
                              aria-labelledby="asset_list-tab">
@@ -125,7 +132,7 @@
                                 <a class="inline-flex items-center h-10 px-5 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
                                    href="{{route("reports","export=asset_list")}}" target="_blank">{{__("Export")}}</a>
                                 <a class="inline-flex items-center h-10 px-5 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
-                                   href="{{route("reports","export=cncs")}}" target="_blank">{{__("Export CNCS")}}</a>
+                                    href="{{route("reports","export=cncs_save")}}" target="_blank">{{__("Export CNCS")}}</a>
                             </div>
                         </div>
                         <div class="hidden p-4" id="risk_map" role="tabpanel"
@@ -216,6 +223,33 @@
 
                             </div>
 
+                        </div>
+                        <div class="hidden p-4" id="annual_reports" role="tabpanel" aria-labelledby="annual-reports-tab">
+                            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border-separate">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">{{__("Year")}}</th>
+                                    <th scope="col" class="px-6 py-3">{{__("Type")}}</th>
+                                    <th scope="col" class="px-6 py-3">{{__("Generation Date")}}</th>
+                                    <th scope="col" class="px-6 py-3">{{__("Action")}}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($annualReports as $report)
+                                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 text-gray-900">
+                                        <td class="px-6 py-4">{{ $report->year }}</td>
+                                        <td class="px-6 py-4">{{ $report->type }}</td>
+                                        <td class="px-6 py-4">{{ $report->created_at->format('d/m/Y H:i') }}</td>
+                                        <td class="px-6 py-4">
+                                            <a href="{{ asset('storage/' . $report->file_path) }}" target="_blank"
+                                            class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
+                                                {{__("Download")}}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
