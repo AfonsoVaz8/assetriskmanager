@@ -35,13 +35,16 @@ class AssetController extends Controller
      *
      * @return Application|Factory|View
      */
-    public function index(Request $request)
+public function index(Request $request)
     {
         $asset_type_id = $request->input("asset_type", "");
         $filter = $request->input("filter", "");
         $assetTypes = AssetType::all();
         /* @var $user User */
         $user = Auth::user();
+        
+        $perPage = $request->get('per_page', 10);
+
         if (!empty($asset_type_id) || !empty($filter)) {
             $assets = $this->filterAsset($filter);
             if (!empty($asset_type_id)) {
@@ -50,14 +53,14 @@ class AssetController extends Controller
             if (!in_array($user->role, array(UserRole::SECURITY_OFFICER, UserRole::DATA_PROTECTION_OFFICER))) {
                 $assets = $assets->where("manager_id", "=", $user->id)->where("active", "=", true);
             }
-            $assets = $assets->paginate(config("constants.assets.pagination_size"))->withQueryString();
+            $assets = $assets->paginate($perPage)->withQueryString();
         }
         else {
             if (in_array($user->role, array(UserRole::SECURITY_OFFICER, UserRole::DATA_PROTECTION_OFFICER))) {
-                $assets = Asset::paginate(config("constants.assets.pagination_size"))->withQueryString();
+                $assets = Asset::paginate($perPage)->withQueryString();
             }
             else {
-                $assets = Asset::where("manager_id", "=", $user->id)->where("active", "=", true)->paginate(5)->withQueryString();
+                $assets = Asset::where("manager_id", "=", $user->id)->where("active", "=", true)->paginate($perPage)->withQueryString();
             }
         }
         return view("assets.index", ["assets" => $assets, "assetTypes" => $assetTypes, "asset_type_id" => $asset_type_id, "filter" => $filter]);
@@ -178,11 +181,12 @@ public function store(StoreAssetRequest $request)
      * @param Asset $asset
      * @return RedirectResponse
      */
-    public function update(UpdateAssetRequest $request, Asset $asset)
+public function update(UpdateAssetRequest $request, Asset $asset)
     {
         /* @var $user User */
         $user = Auth::user();
         $manufacturer_contract_type = $request->input("manufacturer_contract_type");
+        
         $asset->update([
             "name" => $request->input("name"),
             "asset_type_id" => $request->input("type"),
@@ -206,13 +210,24 @@ public function store(StoreAssetRequest $request)
             "links_to_id" => $request->input("links_to"),
             "version" => $request->input("version")
         ]);
+        
         Log::channel("application")->info(sprintf("Update Asset %d", $asset->id));
+
+        if ($asset->wasChanged('manager_id')) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($asset->manager->email)->send(new \App\Mail\AssetAssignedMail($asset));
+            } catch (\Exception $e) {
+                Log::channel("application")->error("Falha ao enviar e-mail: " . $e->getMessage());
+            }
+        }
+
         AssetLog::create([
             "user_id" => $user->id,
             "asset_id" => $asset->id,
             "operation_type" => AssetOperationType::UPDATE,
             "ip" => $request->ip()
         ]);
+        
         return redirect()->route("assets.edit", $asset->id)->with("status", __("Asset Updated"));
     }
 

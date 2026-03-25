@@ -31,19 +31,33 @@
     <p>{{ __('Below is the list of assets assessed in the current year, as well as their residual risk level:') }}</p>
 
     <table>
+<table>
         <thead>
             <tr>
                 <th>{{ __('Asset Name') }}</th>
                 <th>{{ __('Type') }}</th>
-                <th>{{ __('Global Risk') }}</th>
-            </tr>
+                <th>{{ __('Threats & Risks') }}</th> </tr>
         </thead>
         <tbody>
             @foreach($assets as $asset)
                 <tr>
-                    <td>{{ $asset->name }}</td>
-                    <td>{{ __($asset->type->name ?? 'None') }}</td>
-                    <td>{{ $asset->highestRemainingRisk() }}</td>
+                    <td style="vertical-align: top;"><strong>{{ $asset->name }}</strong></td>
+                    <td style="vertical-align: top;">{{ __($asset->type->name ?? 'None') }}</td>
+                    
+                    <td style="vertical-align: top;">
+                        @if($asset->threats->count() > 0)
+                            <ul style="margin: 0; padding-left: 15px;">
+                                @foreach($asset->threats as $assetThreat)
+                                    <li style="margin-bottom: 4px;">
+                                        {{ $assetThreat->threat->name }} 
+                                            (Risco Global: {{ $assetThreat->residual_risk_accepted ? $assetThreat->residual_risk : ($assetThreat->absoluteRisk() * $asset->totalAppreciation()) }})
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <i>{{ __('Nenhuma') }}</i> - Risco Global: <strong>{{ $asset->highestRemainingRisk() }}</strong>
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>

@@ -27,13 +27,24 @@
                         <div class="mb-6">
                             <label for="filter"
                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{__("Filter(Name/Description/MAC/IP/SKU/Location/Manufacturer/FQDN)")}}</label>
-                            <div class="flex">
-                                <input type="text" id="filter" name="filter"
-                                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                       value="{{$filter}}">
-                                <button type="submit"
-                                        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">{{__("Search")}}</button>
-                            </div>
+                            <div class="flex gap-4">
+                                <div class="flex-grow flex">
+                                    <input type="text" id="filter" name="filter"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                        value="{{$filter}}">
+                                    <button type="submit"
+                                            class="ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">{{__("Search")}}</button>
+                                </div>
+                                    <div>
+                                        <select name="per_page" id="per_page" onchange="this.form.submit()"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 {{ __('') }}</option>
+                                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 {{ __('') }}</option>
+                                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 {{ __('') }}</option>
+                                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 {{ __('') }}</option>
+                                        </select>
+                                    </div>
+                                </div>
                         </div>
                     </form>
                     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
