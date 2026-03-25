@@ -31,15 +31,17 @@ class UserController extends Controller
     {
         $filter = $request->input("filter", "");
         $department_id = $request->input("department", "");
+        $perPage = $request->get('per_page', 10);
+        
         if (!empty($filter) || !empty($department_id)) {
             $users = $this->filterUser($filter);
             if (!empty($department_id)) {
                 $users = $users->where("department_id", "=", $department_id);
             }
-            $users = $users->paginate(5)->withQueryString();
+            $users = $users->paginate($perPage)->withQueryString();
         }
         else {
-            $users = User::paginate(5)->withQueryString();
+            $users = User::paginate($perPage)->withQueryString();
         }
         $departments = Department::all();
         return view("users.index",

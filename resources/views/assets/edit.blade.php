@@ -6,59 +6,7 @@
         <div class="mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <div class="mb-4 border-b border-gray-200">
-                        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="tabs"
-                            data-tabs-toggle="#tabsContent" role="tabList">
-                            <li class="mr-2" role="presentation">
-                                <button
-                                        class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
-                                        id="details-tab" data-tabs-target="#details" type="button" role="tab"
-                                        aria-controls="details" aria-selected="true">{{__("Details")}}
-                                </button>
-                            </li>
-                            <li class="mr-2" role="presentation">
-                                <button
-                                        class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
-                                        id="threats-controls-tab" data-tabs-target="#threats_controls" type="button"
-                                        role="tab"
-                                        aria-controls="threats_controls"
-                                        aria-selected="false">{{__("Threats/Controls")}}
-                                </button>
-                            </li>
-                            <li class="mr-2" role="presentation">
-                                <button
-                                        class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
-                                        id="risk-summary-tab" data-tabs-target="#risk_summary" type="button" role="tab"
-                                        aria-controls="risk_summary" aria-selected="false">{{__("Risk Summary")}}
-                                </button>
-                            </li>
-                            <li class="mr-2" role="presentation">
-                                <button
-                                        class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
-                                        id="logs-tab" data-tabs-target="#logs" type="button" role="tab"
-                                        aria-controls="logs" aria-selected="false">{{__("Logs")}}
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                    <div id="tabsContent">
-                        <div class="hidden p-4" id="threats_controls" role="tabpanel"
-                             aria-labelledby="threats-controls-tab">
-                            @livewire("asset-threats-controls-manage",["asset"=>$asset])
-                        </div>
-                        <div class="hidden p-4" id="risk_summary" role="tabpanel"
-                             aria-labelledby="risk-summary-tab">
-                            @livewire("asset-risk-summary",["asset"=>$asset])
-
-                        </div>
-                        <div class="hidden p-4" id="logs" role="tabpanel"
-                             aria-labelledby="logs-tab">
-                            @livewire("asset-logs",["asset"=>$asset])
-
-                        </div>
-                        <div class="hidden p-4" id="details" role="tabpanel"
-                             aria-labelledby="details-tab">
-                            <form method="POST" action="{{route('assets.update',$asset->id)}}">
+                    @livewire("asset-edit-form", ["asset" => $asset, "assetTypes" => $assetTypes])
                                 @csrf
                                 @method("PUT")
                                 <div class="mb-6">
@@ -291,12 +239,6 @@
                                             id="active" {{$asset->active ? "checked" : ""}}>
                                 </div>
                                 @livewire("asset-links-to-manage",["asset"=>$asset])
-                                <button type="submit"
-                                        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">{{__("Update")}}</button>
-                                @can("delete",$asset)
-                                    @include("common.delete_button")
-                                @endcan
-                            </form>
                             @can("delete",$asset)
                                 @include("common.delete_prompt",["route" => route("assets.destroy",$asset->id),"message" => __("Are you sure you want to delete this asset? This will delete all associated information with it.")])
                             @endcan

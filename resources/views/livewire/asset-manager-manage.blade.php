@@ -1,7 +1,17 @@
 @if(in_array(Auth::user()->role,[\App\Enums\UserRole::SECURITY_OFFICER,\App\Enums\UserRole::DATA_PROTECTION_OFFICER]))
     @if($showSearch)
         <div>
-            @livewire("user-search")
+            @livewire("user-search", ["selectedManagerId" => $selectedManagerId], key("user-search-{$asset->id}"))
+            <div class="flex gap-2 mt-2">
+                <button wire:click="confirmSelection" type="button"
+                        class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
+                    {{__("Confirm")}}
+                </button>
+                <button wire:click="cancelEdit" type="button"
+                        class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800">
+                    {{__("Cancel")}}
+                </button>
+            </div>
         </div>
     @else
         <div class="mb-6">

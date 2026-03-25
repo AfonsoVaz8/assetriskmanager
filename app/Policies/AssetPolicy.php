@@ -54,7 +54,8 @@ class AssetPolicy
      */
     public function update(User $user, Asset $asset): bool
     {
-        return $user->role == UserRole::SECURITY_OFFICER || $asset->manager->id == $user->id;
+        return in_array($user->role, [UserRole::SECURITY_OFFICER, UserRole::DATA_PROTECTION_OFFICER])
+            || $asset->manager->id == $user->id;
     }
 
     /**

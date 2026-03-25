@@ -17,10 +17,19 @@ class AssetManagerManage extends Component
 
     public $asset;
     public $showSearch = false;
+    public $selectedManagerId;
+
+    protected $listeners = ['managerSelected' => 'updateSelectedManager'];
+
+    public function updateSelectedManager($managerId)
+    {
+        $this->selectedManagerId = $managerId;
+    }
 
     public function mount($asset)
     {
         $this->asset = $asset;
+        $this->selectedManagerId = $asset->manager_id;
     }
 
     /**
@@ -36,6 +45,19 @@ class AssetManagerManage extends Component
     public function toggleSearch()
     {
         $this->showSearch = true;
+    }
+
+    public function cancelEdit()
+    {
+        $this->showSearch = false;
+        $this->selectedManagerId = $this->asset->manager_id;
+    }
+
+    public function confirmSelection()
+    {
+        // Emit event to parent component to update the asset
+        $this->emitUp('managerUpdated', $this->selectedManagerId);
+        $this->showSearch = false;
     }
 
 }

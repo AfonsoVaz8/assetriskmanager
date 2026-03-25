@@ -17,6 +17,12 @@ class UserSearch extends Component
 
     public $users = array();
     public $searchTerm;
+    public $selectedManagerId;
+
+    public function mount($selectedManagerId = null)
+    {
+        $this->selectedManagerId = $selectedManagerId;
+    }
 
     /**
      * @throws AuthorizationException
@@ -32,5 +38,10 @@ class UserSearch extends Component
             $this->users = array();
         }
         return view('livewire.user-search', ["users" => $this->users]);
+    }
+
+    public function updatedSelectedManagerId($value)
+    {
+        $this->emitUp('managerSelected', $value);
     }
 }
