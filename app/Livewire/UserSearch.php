@@ -15,13 +15,14 @@ class UserSearch extends Component
 {
     use AuthorizesRequests;
 
-    public $users = array();
+    public $users;
     public $searchTerm;
     public $selectedManagerId;
 
     public function mount($selectedManagerId = null)
     {
         $this->selectedManagerId = $selectedManagerId;
+        $this->users = collect();
     }
 
     /**
@@ -35,7 +36,7 @@ class UserSearch extends Component
             $this->users = UserController::filterUser($filter)->get();
         }
         else {
-            $this->users = array();
+            $this->users = collect();
         }
         return view('livewire.user-search', ["users" => $this->users]);
     }

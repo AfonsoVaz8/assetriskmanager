@@ -18,7 +18,7 @@ class AssetSearch extends Component
 {
     use AuthorizesRequests;
 
-    public $assets = [];
+    public $assets;
     public $searchTerm;
 
     /**
@@ -38,7 +38,7 @@ class AssetSearch extends Component
             $this->assets = $search;
         }
         else {
-            $this->assets = array();
+            $this->assets = collect();
         }
         return view('livewire.asset-search', ["assets" => $this->assets]);
     }

@@ -27,10 +27,12 @@ class AssetLinksToManage extends Component
     public $searchTerm;
     public $assets = array();
     public $showSearch;
+    public $selectedAssetId;
 
     public function mount($asset)
     {
         $this->asset = $asset;
+        $this->selectedAssetId = $asset->links_to_id;
         $this->showSearch = empty($asset->links_to_id);
     }
 
@@ -46,23 +48,23 @@ class AssetLinksToManage extends Component
             $search = AssetController::filterAsset($this->searchTerm);
             if ($user->role == UserRole::SECURITY_OFFICER) {
                 $search = $search->whereNot("id", "=", $this->asset->id)->
-                whereNotIn("id", $this->asset->children()->get("id"));
+                whereNotIn("id", $this->asset->children()->pluck("id"));
             }
             else {
                 $search = $search->whereNot("id", "=", $this->asset->id)->
-                whereNotIn("id", $this->asset->children()->get("id"))->
+                whereNotIn("id", $this->asset->children()->pluck("id"))->
                 where("manager_id", "=", $user->id);
             }
             $this->assets = $search->get();
         }
         else {
-            $this->assets = array();
+            $this->assets = collect();
         }
         return view('livewire.asset-links-to-manage', ["asset" => $this->asset, "assets" => $this->assets]);
     }
 
-    public function toggleSearch()
+    public function toggleSearch($show = true)
     {
-        $this->showSearch = true;
+        $this->showSearch = $show;
     }
 }
