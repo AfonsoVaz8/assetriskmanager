@@ -43,6 +43,14 @@ class UserSearch extends Component
 
     public function updatedSelectedManagerId($value)
     {
-        $this->emitUp('managerSelected', $value);
+        $this->dispatch('managerSelected', $value);
+    }
+    public function toggleSearch()
+    {
+        $this->isSearchOpen = !$this->isSearchOpen;
+
+        if (!$this->isSearchOpen) {
+            $this->reset('searchTerm', 'users');
+        }
     }
 }

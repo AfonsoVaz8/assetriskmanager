@@ -53,10 +53,13 @@ class AssetManagerManage extends Component
         $this->selectedManagerId = $this->asset->manager_id;
     }
 
-    public function confirmSelection()
+public function confirmSelection()
     {
-        // Emit event to parent component to update the asset
-        $this->emitUp('managerUpdated', $this->selectedManagerId);
+        $this->dispatch('managerUpdated', $this->selectedManagerId);
+        
+        $this->asset->manager_id = $this->selectedManagerId;
+        $this->asset->load('manager');
+        
         $this->showSearch = false;
     }
 

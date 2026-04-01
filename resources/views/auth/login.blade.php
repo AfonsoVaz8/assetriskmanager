@@ -25,6 +25,22 @@
                 <x-label for="password" value="{{ __('Password') }}"/>
                 <x-input id="password" class="block mt-1 w-full" type="password" name="password" required
                              autocomplete="current-password"/>
+
+                <div class="mt-2 flex items-center">
+                    <input type="checkbox" id="show_password" onclick="togglePassword()">
+                    <label for="show_password" class="ml-2 text-sm text-gray-600">{{ __('Show Password') }}</label>
+                </div>
+                
+                <script>
+                function togglePassword() {
+                    var passwordInput = document.getElementById("password");
+                    if (passwordInput.type === "password") {
+                        passwordInput.type = "text";
+                    } else {
+                        passwordInput.type = "password";
+                    }
+                }
+                </script>
             </div>
 
             <div class="block mt-4">

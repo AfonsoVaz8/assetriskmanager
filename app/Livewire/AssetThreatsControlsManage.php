@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Livewire\Component;
+use App\Mail\ThreatAddedMail;     
+use App\Mail\ControlAddedMail;     
+use App\Models\Control;            
+use Illuminate\Support\Facades\Mail; 
 
 
 /**
@@ -153,6 +157,16 @@ class AssetThreatsControlsManage extends Component
             "operation_type" => AssetOperationType::ADD_THREAT,
             "ip" => $request->ip()
         ]);
+
+        if ($this->asset->manager && !empty($this->asset->manager->email)) {
+        try {
+            $threat = Threat::find($this->selectedThreat);
+            Mail::to($this->asset->manager->email)->send(new ThreatAddedMail($this->asset, $threat));
+        } catch (\Exception $e) {
+            Log::channel("application")->error("Failure to send the email: " . $e->getMessage());
+        }
+    }
+
         Log::channel("application")->info(sprintf("Add Threat %d to Asset %d",
             $this->selectedThreat, $this->asset->id));
     }
@@ -245,6 +259,9 @@ class AssetThreatsControlsManage extends Component
     /**
      * @throws AuthorizationException
      */
+/**
+     * @throws AuthorizationException
+     */
     public function addControl(Request $request)
     {
         $this->authorize("update", $this->asset);
@@ -253,29 +270,37 @@ class AssetThreatsControlsManage extends Component
             "selectedControl" => [Rule::exists("controls", "id"), "required"],
             "selectedControlType" => ["required", new Enum(ControlType::class)],
         ]);
-        if (!AssetThreatControl::
-        where("asset_threat_id", "=", $this->selectedAssetThreat)->
-        where("control_id", "=", $this->selectedControl)->
-        exists()
-        ) {
+
+        if (!AssetThreatControl:: where("asset_threat_id", "=", $this->selectedAssetThreat)-> where("control_id", "=", $this->selectedControl)->exists()) {
             AssetThreatControl::create([
                 "asset_threat_id" => $this->selectedAssetThreat,
                 "control_id" => $this->selectedControl,
                 "control_type" => $this->selectedControlType
             ]);
+            
             AssetLog::create([
                 "user_id" => $request->user()->id,
                 "asset_id" => $this->asset->id,
                 "operation_type" => AssetOperationType::ADD_CONTROL,
                 "ip" => $request->ip()
             ]);
+
+            if ($this->asset->manager && !empty($this->asset->manager->email)) {
+                try {
+                    $control = Control::find($this->selectedControl);
+                    Mail::to($this->asset->manager->email)->send(new ControlAddedMail($this->asset, $control));
+                } catch (\Exception $e) {
+                    Log::channel("application")->error("Failure to send the email: " . $e->getMessage());
+                }
+            }
+            
             Log::channel("application")->info(sprintf("Add Control %d to Asset %d",
                 $this->selectedControl, $this->asset->id));
         }
+
         $this->unsetRemainingRiskAcceptance();
         $this->assetThreatControlAddDialogOpen = false;
-
-    }
+    } 
 
     /**
      * @throws AuthorizationException

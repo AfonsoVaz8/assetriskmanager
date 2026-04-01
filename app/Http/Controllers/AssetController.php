@@ -183,14 +183,16 @@ public function store(StoreAssetRequest $request)
      */
 public function update(UpdateAssetRequest $request, Asset $asset)
     {
-        /* @var $user User */
         $user = Auth::user();
         $manufacturer_contract_type = $request->input("manufacturer_contract_type");
         
+        $isSecurityOfficer = $user->role === UserRole::SECURITY_OFFICER || 
+                            (is_scalar($user->role) && $user->role === UserRole::SECURITY_OFFICER->value);
+
         $asset->update([
             "name" => $request->input("name"),
             "asset_type_id" => $request->input("type"),
-            "manager_id" => $user->role == UserRole::SECURITY_OFFICER ? $request->input("manager") : $asset->manager_id,
+            "manager_id" => $isSecurityOfficer ? $request->input("manager") : $asset->manager_id,
             "description" => $request->input("description"),
             "sku" => $request->input("sku"),
             "manufacturer" => $request->input("manufacturer"),
@@ -214,17 +216,21 @@ public function update(UpdateAssetRequest $request, Asset $asset)
         Log::channel("application")->info(sprintf("Update Asset %d", $asset->id));
 
         if ($asset->wasChanged('manager_id')) {
-            try {
-                \Illuminate\Support\Facades\Mail::to($asset->manager->email)->send(new \App\Mail\AssetAssignedMail($asset));
-            } catch (\Exception $e) {
-                Log::channel("application")->error("Falha ao enviar e-mail: " . $e->getMessage());
+            $asset->load('manager');
+            
+            if ($asset->manager && !empty($asset->manager->email)) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($asset->manager->email)->send(new \App\Mail\AssetAssignedMail($asset));
+                } catch (\Throwable $e) {
+                    Log::channel("application")->error("Falha ao enviar e-mail: " . $e->getMessage());
+                }
             }
         }
 
         AssetLog::create([
             "user_id" => $user->id,
             "asset_id" => $asset->id,
-            "operation_type" => AssetOperationType::UPDATE,
+            "operation_type" => property_exists(AssetOperationType::UPDATE, 'value') ? AssetOperationType::UPDATE->value : AssetOperationType::UPDATE,
             "ip" => $request->ip()
         ]);
         
