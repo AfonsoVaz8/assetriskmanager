@@ -179,15 +179,16 @@
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                             type="text" wire:model.live="threatSearchTerm"
                             placeholder="{{__("Search for Threat (Name/Description)")}}">
-                        <select
+                       <select
                             id="threat"
                             class="form-select appearance-none block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                             aria-label="Select Threat to Add"
                             wire:model="selectedThreat">
                             <option value="" disabled selected>{{__("Select Threat to Add")}}</option>
                             @foreach($threatsSearch as $threat)
-                                <option
-                                    value="{{$threat->id}}">{{$threat->id.":".$threat->name.":".$threat->description}}</option>
+                                <option value="{{$threat->id}}">
+                                    {{$threat->name}}
+                                </option>
                             @endforeach
                         </select>
                         @error('selectedThreat') <span class="error">{{ $message }}</span> @enderror

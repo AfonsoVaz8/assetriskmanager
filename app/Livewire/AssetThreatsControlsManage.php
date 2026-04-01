@@ -288,7 +288,11 @@ class AssetThreatsControlsManage extends Component
             if ($this->asset->manager && !empty($this->asset->manager->email)) {
                 try {
                     $control = Control::find($this->selectedControl);
-                    Mail::to($this->asset->manager->email)->send(new ControlAddedMail($this->asset, $control));
+                    
+                    $assetThreat = AssetThreat::find($this->selectedAssetThreat);
+                    $threat = $assetThreat->threat;
+                    
+                    Mail::to($this->asset->manager->email)->send(new ControlAddedMail($this->asset, $control, $threat));
                 } catch (\Exception $e) {
                     Log::channel("application")->error("Failure to send the email: " . $e->getMessage());
                 }

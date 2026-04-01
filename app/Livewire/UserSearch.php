@@ -8,49 +8,55 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 
-/**
- * Livewire component to allow searching of all users in the platform. Used on the asset creation and management forms.
- */
 class UserSearch extends Component
 {
     use AuthorizesRequests;
 
     public $users;
-    public $searchTerm;
+    public $searchTerm = '';
     public $selectedManagerId;
+    public $showDropdown = false;
 
     public function mount($selectedManagerId = null)
     {
         $this->selectedManagerId = $selectedManagerId;
         $this->users = collect();
+
+        if ($this->selectedManagerId) {
+            $user = User::find($this->selectedManagerId);
+            if ($user) {
+                // Formata o nome para ficar bonito no input
+                $this->searchTerm = $user->name . ' (' . $user->email . ')';
+            }
+        }
     }
 
-    /**
-     * @throws AuthorizationException
-     */
+    public function updatedSearchTerm()
+    {
+        $this->selectedManagerId = null;
+        $this->showDropdown = true;
+
+        if (strlen($this->searchTerm) >= 2) {
+            $this->users = UserController::filterUser($this->searchTerm)->take(10)->get();
+        } else {
+            $this->users = collect();
+            $this->showDropdown = false;
+        }
+    }
+
+    public function selectUser($userId, $userName, $userEmail)
+    {
+        $this->selectedManagerId = $userId;
+        $this->searchTerm = $userName . ' (' . $userEmail . ')';
+        $this->showDropdown = false;
+        $this->users = collect();
+
+        $this->dispatch('managerSelected', $this->selectedManagerId);
+    }
+
     public function render()
     {
         $this->authorize('viewAny', User::class);
-        if (!empty($this->searchTerm)) {
-            $filter = $this->searchTerm;
-            $this->users = UserController::filterUser($filter)->get();
-        }
-        else {
-            $this->users = collect();
-        }
-        return view('livewire.user-search', ["users" => $this->users]);
-    }
-
-    public function updatedSelectedManagerId($value)
-    {
-        $this->dispatch('managerSelected', $value);
-    }
-    public function toggleSearch()
-    {
-        $this->isSearchOpen = !$this->isSearchOpen;
-
-        if (!$this->isSearchOpen) {
-            $this->reset('searchTerm', 'users');
-        }
+        return view('livewire.user-search');
     }
 }

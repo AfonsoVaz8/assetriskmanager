@@ -3,6 +3,9 @@
 <body>
     <h2>Olá, {{ $asset->manager->name ?? 'Gestor' }}!</h2>
     <p>Um novo controlo de segurança foi implementado no ativo <strong>{{ $asset->name }}</strong>.</p>
+    
+    <p>Este controlo foi adicionado para a ameaça: <strong>{{ $threat->name }}(id: {{ $threat->id }})</strong>.</p>
+    
     <ul>
         <li><strong>Controlo:</strong> {{ $control->name }}</li>
         <li><strong>Descrição:</strong> {{ $control->description }}</li>
