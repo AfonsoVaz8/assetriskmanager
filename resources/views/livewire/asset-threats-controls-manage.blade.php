@@ -7,14 +7,42 @@
                 {{__("Add Threat")}}
             </button>
         </div>
-    @else
+@else
         <h2 class="text-center text-2xl font-normal leading-normal mt-0 mb-2">{{__("Threats")}}</h2>
-        <div class="flex justify-center">
+        
+        @if (session()->has('nvd_success'))
+            <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 text-center shadow-sm">
+                {{ session('nvd_success') }}
+            </div>
+        @endif
+        @if (session()->has('nvd_error'))
+            <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 text-center shadow-sm">
+                {{ session('nvd_error') }}
+            </div>
+        @endif
+
+        <div class="flex justify-center gap-4 mb-4">
             <button type="button"
                     wire:click="openCreateThreatDialog"
-                    class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                    class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
                 {{__("Add Threat")}}
             </button>
+
+            @if(!empty($asset->cpe))
+                <button type="button"
+                        wire:click="importNvdVulnerabilities"
+                        wire:loading.attr="disabled"
+                        class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900 disabled:opacity-50 transition-all flex items-center">
+                    <span wire:loading.remove wire:target="importNvdVulnerabilities">
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                        {{__("Import from NVD (CPE)")}}
+                    </span>
+                    <span wire:loading wire:target="importNvdVulnerabilities">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        {{__("Searching Database...")}}
+                    </span>
+                </button>
+            @endif
         </div>
     @endif
     <div class="relative overflow-x-auto shadow-md sm:rounded-lg mb-5">

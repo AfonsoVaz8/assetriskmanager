@@ -42,7 +42,8 @@ class StoreAssetRequest extends FormRequest
             "ip_address" => ["nullable"],
             "export" => [],
             "links_to" => [Rule::exists("assets", "id"), "nullable"],
-            "version" => []
+            "version" => [],
+            "cpe" => ["nullable", "string", "max:255", "regex:/^cpe:(2\.3:[aho]:|\/[aho]:).*$/"]
         ];
     }
 }

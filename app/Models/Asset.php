@@ -36,7 +36,8 @@ class Asset extends Model
         "active",
         "links_to_id",
         "remainingRiskAccepted",
-        "version"
+        "version",
+        "cpe"
     ];
     /**
      * The attributes that should be cast.

@@ -56,7 +56,8 @@ class UpdateAssetRequest extends FormRequest
                     )
                 )
             ],
-            "version" => ["nullable"]
+            "version" => ["nullable"],
+            "cpe" => ["nullable", "string", "max:255", "regex:/^cpe:(2\.3:[aho]:|\/[aho]:).*$/"]
         ];
     }
 }

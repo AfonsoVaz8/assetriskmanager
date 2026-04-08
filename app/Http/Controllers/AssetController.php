@@ -110,7 +110,8 @@ public function store(StoreAssetRequest $request)
             "ip_address" => $request->input("ip_address"),
             "export" => $request->has("export"),
             "links_to_id" => $request->input("links_to"),
-            "version" => $request->input("version")
+            "version" => $request->input("version"),
+            "cpe" => $request->input("cpe")
         ]);
         
         $asset->save();
@@ -210,7 +211,8 @@ public function update(UpdateAssetRequest $request, Asset $asset)
             "export" => $request->has("export"),
             "active" => $request->has("active"),
             "links_to_id" => $request->input("links_to"),
-            "version" => $request->input("version")
+            "version" => $request->input("version"),
+            "cpe" => $request->input("cpe")
         ]);
         
         Log::channel("application")->info(sprintf("Update Asset %d", $asset->id));
