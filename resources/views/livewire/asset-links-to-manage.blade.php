@@ -1,21 +1,36 @@
 <div class="mb-6">
     <label for="links_to"
            class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{__("Links To Asset")}}</label>
-    <input type="hidden" name="links_to" id="links_to_hidden" value="{{$asset->links_to_id}}">
+           
+    <input type="hidden" name="links_to" id="links_to_hidden" value="{{ $selectedAssetId }}">
+    
     @if($showSearch)
         <input
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             type="text" wire:model.live="searchTerm"
             placeholder="{{__("Filter(Name/Description/MAC/IP/SKU/Location/Manufacturer/FQDN)")}}">
         <select id="links_to_select"
-                class="form-select appearance-none block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                wire:key="select-links-to-box"
+                class="form-select appearance-none block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding bg-no-repeat border border-solid border-gray-300 rounded transition ease-in-out m-0 mt-2 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                wire:model="selectedAssetId"
                 onchange="document.getElementById('links_to_hidden').value = this.value">
+            
+            <option value="">{{__("None")}}</option>
+
+            {{-- 1. Mantém o ativo atual visível se não fizer parte dos resultados da pesquisa --}}
+            @if(!empty($selectedAssetId) && collect($assets)->where('id', $selectedAssetId)->isEmpty())
+                <option value="{{ $selectedAssetId }}">
+                    {{ $selectedAssetId }}:{{ optional($asset->linksTo)->name ?? 'Ativo Atual' }}
+                </option>
+            @endif
+
+            {{-- 2. Removemos o wire:key das opções (o Livewire faz a gestão do select nativamente pelos values) --}}
             @foreach($assets as $linkedAsset)
-                <option value="{{ $linkedAsset->id }}" {{$loop->first ? "selected" : ""}}>
-                    {{ "$linkedAsset->id:$linkedAsset->name" }}
+                <option value="{{ $linkedAsset->id }}">
+                    {{ $linkedAsset->id }}:{{ $linkedAsset->name }}
                 </option>
             @endforeach
-            <option value="">{{__("None")}}</option>
+            
         </select>
         <div class="mt-2">
             <button wire:click="toggleSearch(false)" type="button"

@@ -67,4 +67,13 @@ class AssetLinksToManage extends Component
     {
         $this->showSearch = $show;
     }
+
+    public function updatedSelectedAssetId($value)
+    {
+        $this->asset->links_to_id = empty($value) ? null : $value;
+        
+        if (!empty($value)) {
+            $this->asset->load('linksTo');
+        }
+    }
 }
