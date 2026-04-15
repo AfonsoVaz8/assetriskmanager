@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <body>
-    <h2>Olá, {{ $asset->manager->name ?? 'Gestor' }}!</h2>
-    <p>Um novo controlo de segurança foi implementado no ativo <strong>{{ $asset->name }}</strong>.</p>
-    
-    <p>Este controlo foi adicionado para a ameaça: <strong>{{ $threat->name }}(id: {{ $threat->id }})</strong>.</p>
-    
+    <h2>Hello, {{ $asset->manager->name ?? 'Gestor' }}!</h2>
+    <p>A new security control has been implemented on the asset <strong>{{ $asset->name }}</strong>.</p>
+
+    <p>This control was added for the threat: <strong>{{ $threat->name }}(id: {{ $threat->id }})</strong>.</p>
+
     <ul>
-        <li><strong>Controlo:</strong> {{ $control->name }}</li>
-        <li><strong>Descrição:</strong> {{ $control->description }}</li>
+        <li><strong>Control:</strong> {{ $control->name }}</li>
+        <li><strong>Description:</strong> {{ $control->description }}</li>
     </ul>
-    <p>Consulte o plano de tratamento de riscos para mais detalhes.</p>
+    <p>Consult the risk treatment plan for more details.</p>
 </body>
 </html>

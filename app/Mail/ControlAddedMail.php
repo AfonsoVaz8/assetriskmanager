@@ -26,7 +26,7 @@ class ControlAddedMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Novo Controlo Aplicado: ' . $this->asset->name)
+        return $this->subject('New Control Added: ' . $this->asset->name)
                     ->view('emails.control_added');
     }
 }

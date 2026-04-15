@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <body>
-    <h2>Olá, {{ $asset->manager->name ?? 'Gestor' }}!</h2>
-    <p>Uma nova ameaça foi associada ao ativo <strong>{{ $asset->name }}</strong>.</p>
+    <h2>Hello, {{ $asset->manager->name ?? 'Gestor' }}!</h2>
+    <p>A new threat has been associated with the asset <strong>{{ $asset->name }}</strong>.</p>
     <ul>
-        <li><strong>Ameaça:</strong> {{ $threat->name }}</li>
-        <li><strong>Descrição:</strong> {{ $threat->description }}</li>
+        <li><strong>Threat:</strong> {{ $threat->name }}</li>
+        <li><strong>Description:</strong> {{ $threat->description }}</li>
     </ul>
-    <p>Por favor, aceda ao sistema para avaliar o impacto e a probabilidade.</p>
+    <p>Please, access the system to evaluate the impact and probability.</p>
 </body>
 </html>

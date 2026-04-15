@@ -17,14 +17,12 @@
             
             <option value="">{{__("None")}}</option>
 
-            {{-- 1. Mantém o ativo atual visível se não fizer parte dos resultados da pesquisa --}}
             @if(!empty($selectedAssetId) && collect($assets)->where('id', $selectedAssetId)->isEmpty())
                 <option value="{{ $selectedAssetId }}">
                     {{ $selectedAssetId }}:{{ optional($asset->linksTo)->name ?? 'Ativo Atual' }}
                 </option>
             @endif
 
-            {{-- 2. Removemos o wire:key das opções (o Livewire faz a gestão do select nativamente pelos values) --}}
             @foreach($assets as $linkedAsset)
                 <option value="{{ $linkedAsset->id }}">
                     {{ $linkedAsset->id }}:{{ $linkedAsset->name }}

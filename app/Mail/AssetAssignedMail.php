@@ -20,7 +20,7 @@ class AssetAssignedMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Novo Ativo Atribuído: ' . $this->asset->name)
+        return $this->subject('New Asset Assigned: ' . $this->asset->name)
                     ->view('emails.asset_assigned'); 
     }
 }

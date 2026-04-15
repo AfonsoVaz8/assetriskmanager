@@ -10,12 +10,9 @@ use Illuminate\Support\Facades\Log;
 
 class NvdApiService
 {
-    /**
-     * Vai à NVD procurar ameaças para o CPE do ativo e associa-as automaticamente.
-     */
-    public function fetchAndAssignVulnerabilities(Asset $asset): array
+
+   public function fetchAndAssignVulnerabilities(Asset $asset): array
     {
-        // 1. Verificar se o ativo tem um CPE válido
         if (empty($asset->cpe)) {
             return ['success' => false, 'message' => 'O ativo não tem um CPE definido.'];
         }
@@ -37,7 +34,8 @@ class NvdApiService
                 return ['success' => true, 'message' => 'Nenhuma vulnerabilidade conhecida encontrada para este CPE!', 'count' => 0];
             }
 
-            $novasAmeaças = 0;
+            $novasAmeaçasCount = 0;
+            $listaNovasAmeaças = []; 
 
             foreach ($cvesEncontrados as $item) {
                 $cveData = $item['cve'];
@@ -72,14 +70,16 @@ class NvdApiService
                         'availability_impact' => $scoreAppreciation,
                         'residual_risk_accepted' => false,
                     ]);
-                    $novasAmeaças++;
+                    $novasAmeaçasCount++;
+                    $listaNovasAmeaças[] = $threat; // ADICIONAR À LISTA
                 }
             }
 
             return [
                 'success' => true, 
-                'message' => "Pesquisa concluída! Foram importadas {$novasAmeaças} novas vulnerabilidades.",
-                'count' => $novasAmeaças
+                'message' => "Pesquisa concluída! Foram importadas {$novasAmeaçasCount} novas vulnerabilidades.",
+                'count' => $novasAmeaçasCount,
+                'new_threats' => $listaNovasAmeaças // DEVOLVER A LISTA AQUI
             ];
 
         } catch (\Exception $e) {
