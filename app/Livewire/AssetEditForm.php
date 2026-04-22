@@ -13,20 +13,12 @@ class AssetEditForm extends Component
     public $asset;
     public $assetTypes;
 
-    protected $listeners = ['managerUpdated' => 'updateManager'];
-
     public function mount($asset, $assetTypes)
     {
         $this->asset = $asset;
         $this->assetTypes = $assetTypes;
     }
 
-    public function updateManager($managerId)
-    {
-        $this->asset->update(['manager_id' => $managerId]);
-        $this->asset->refresh();
-        session()->flash('status', __('Manager updated successfully'));
-    }
 
     public function render()
     {

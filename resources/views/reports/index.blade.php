@@ -20,7 +20,7 @@
                             <li role="presentation">
                                 <button class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
                                         id="annual-reports-tab" data-tabs-target="#annual_reports" type="button" role="tab"
-                                        aria-controls="annual_reports" aria-selected="false">{{__("CNCS Annual Reports")}}
+                                        aria-controls="annual_reports" aria-selected="false">{{__("Stored Reports")}}
                                 </button>
                             </li>
                             <li class="mr-2" role="presentation">
@@ -205,9 +205,9 @@
                                 @endforeach
                                 </tbody>
                             </table>
-                            <div class="flex justify-center">
-                                <a class="inline-flex items-center h-10 px-5 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
-                                   href="{{route("reports","export=risk_map")}}" target="_blank">{{__("Export")}}</a>
+                            <div class="flex justify-center gap-2 mt-4">
+                                <a class="inline-flex items-center h-10 px-5 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
+                                href="{{route("reports","export=asset_list")}}" target="_blank">{{__("Export Excel")}}</a>
                             </div>
                         </div>
                         <div class="hidden p-4" id="dependency_graph"
@@ -225,6 +225,44 @@
 
                         </div>
                         <div class="hidden p-4" id="annual_reports" role="tabpanel" aria-labelledby="annual-reports-tab">
+                            
+                            <form method="GET" action="{{ route('reports') }}" class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-700 dark:border-gray-600 flex flex-wrap gap-4 items-end">
+                                
+                                <input type="hidden" name="tab" value="stored_reports">
+
+                                <div>
+                                    <label for="filter_date" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{__("Generation Date")}}</label>
+                                    <input type="date" id="filter_date" name="filter_date" value="{{ request('filter_date') }}" 
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                </div>
+
+                                <div>
+                                    <label for="filter_year" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{__("Year")}}</label>
+                                    <input type="number" id="filter_year" name="filter_year" value="{{ request('filter_year') }}" placeholder="Ex: 2024"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                </div>
+
+                                <div>
+                                    <label for="filter_type" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{__("Type")}}</label>
+                                    <select id="filter_type" name="filter_type" 
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        <option value="">{{__("All")}}</option>
+                                        <option value="CNCS" {{ request('filter_type') == 'CNCS' ? 'selected' : '' }}>CNCS</option>
+                                        <option value="Cibersegurança" {{ request('filter_type') == 'Cibersegurança' ? 'selected' : '' }}>Cibersegurança</option>
+                                    </select>
+                                </div>
+
+                                <div class="flex gap-2 ml-auto">
+                                    <a href="{{ route('reports', ['tab' => 'stored_reports']) }}" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700">
+                                        {{__("Clear")}}
+                                    </a>
+                                    <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none">
+                                        {{__("Filter")}}
+                                    </button>
+                                </div>
+                            </form>
+                            {{-- FIM BARRA DE FILTROS --}}
+
                             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border-separate">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
@@ -250,6 +288,14 @@
                                 @endforeach
                                 </tbody>
                             </table>
+                            
+                            <div class="mt-4 flex gap-2">
+                                <a class="inline-flex items-center h-10 px-5 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
+                                    href="{{route("reports","export=cncs_save")}}" target="_blank">{{__("Generate CNCS Report")}}</a>   
+                                <a class="inline-flex items-center h-10 px-5 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
+                                    href="{{route("reports","export=cybersecurity_save")}}" target="_blank">{{__("Generate Cyber Report")}}</a>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -259,6 +305,7 @@
 
     @push("js")
         <script>
+
             let imageBlob = null;
 
             async function saveImage() {
@@ -269,65 +316,78 @@
             }
 
             window.addEventListener('load', async function () {
-                cytoscape.use(dagre);
-                let cy = (window.cy = cytoscape({
-                    container: document.getElementById("cy"),
+                if (typeof cytoscape !== 'undefined') {
+                    cytoscape.use(dagre);
+                    let cy = (window.cy = cytoscape({
+                        container: document.getElementById("cy"),
 
-                    boxSelectionEnabled: false,
-                    autounselectify: true,
+                        boxSelectionEnabled: false,
+                        autounselectify: true,
 
-                    layout: {
-                        name: "dagre"
-                    },
-
-                    style: [
-                        {
-                            selector: "node",
-                            style: {
-                                "label": "data(data)",
-                                "text-valign": "center",
-                                "text-halign": "center",
-                                "shape": "rectangle",
-                                "border-width": 2,
-                                "border-color": "black",
-                                "border-style": "dotted",
-                                "color": "black",
-                                "text-background-padding": "data(width)",
-                                "background-color": "data(color)",
-                                "text-wrap": "wrap",
-                                'width': "data(width)",
-                                'height': "data(height)",
-
-                            }
+                        layout: {
+                            name: "dagre"
                         },
 
-                        {
-                            selector: "edge",
-                            style: {
-                                "curve-style": "bezier",
-                                width: 4,
-                                "target-arrow-shape": "triangle",
-                                "line-color": "#9dbaea",
-                                "target-arrow-color": "#9dbaea"
+                        style: [
+                            {
+                                selector: "node",
+                                style: {
+                                    "label": "data(data)",
+                                    "text-valign": "center",
+                                    "text-halign": "center",
+                                    "shape": "rectangle",
+                                    "border-width": 2,
+                                    "border-color": "black",
+                                    "border-style": "dotted",
+                                    "color": "black",
+                                    "text-background-padding": "data(width)",
+                                    "background-color": "data(color)",
+                                    "text-wrap": "wrap",
+                                    'width': "data(width)",
+                                    'height': "data(height)",
+                                }
+                            },
+                            {
+                                selector: "edge",
+                                style: {
+                                    "curve-style": "bezier",
+                                    width: 4,
+                                    "target-arrow-shape": "triangle",
+                                    "line-color": "#9dbaea",
+                                    "target-arrow-color": "#9dbaea"
+                                }
                             }
+                        ],
+                        elements: {
+                            nodes: @json($nodes_array),
+                            edges: @json($edges_array)
                         }
-                    ],
-                    elements: {
-                        nodes: @json($nodes_array),
-                        edges: @json($edges_array)
-                    }
-                }));
-                cy.resize();
-                @if(count($nodes_array)>0)
-                    imageBlob = await cy.png({output: "blob-promise", full: true});
-                @endif
-                cy.on('tap', 'node', function () {
-                    try {
-                        window.open(this.data('link'));
-                    } catch (e) {
-                        window.location.href = this.data('link');
-                    }
-                });
+                    }));
+                    cy.resize();
+                    @if(count($nodes_array)>0)
+                        imageBlob = await cy.png({output: "blob-promise", full: true});
+                    @endif
+                    cy.on('tap', 'node', function () {
+                        try {
+                            window.open(this.data('link'));
+                        } catch (e) {
+                            window.location.href = this.data('link');
+                        }
+                    });
+                }
+            });
+
+            window.addEventListener('load', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                if (urlParams.has('tab') && urlParams.get('tab') === 'stored_reports') {
+                    setTimeout(function() {
+                        const tabBtn = document.getElementById('annual-reports-tab');
+                        if (tabBtn) {
+                            tabBtn.click();
+                        }
+                    }, 150); 
+                }
             });
         </script>
     @endpush

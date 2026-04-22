@@ -1,6 +1,7 @@
 <?php
 
 use Laravel\Jetstream\Http\Middleware\AuthenticateSession;
+use Laravel\Jetstream\Features;
 
 return [
 
@@ -59,9 +60,9 @@ return [
     'features' => [
         // Features::termsAndPrivacyPolicy(),
         //Features::profilePhotos(),
-        // Features::api(),
+        Features::api(),
         // Features::teams(['invitations' => true]),
-        //Features::accountDeletion(),
+        Features::accountDeletion(),
     ],
 
     /*
