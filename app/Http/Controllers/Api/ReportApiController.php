@@ -77,6 +77,7 @@ class ReportApiController extends Controller
                     'asset_id' => $asset->id,
                     'asset_name' => $asset->name,
                     'asset_type' => $asset->type->name ?? 'N/A',
+                    'ip_address' => $asset->ip_address,
                     'total_appreciation' => $asset->totalAppreciation(), //
                     'vulnerabilities' => $asset->threats->map(function ($assetThreat) use ($asset) {
                         return [
