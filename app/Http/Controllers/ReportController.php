@@ -24,7 +24,7 @@ class ReportController extends Controller
     public function __invoke(Request $request)
     {
         $export = $request->input("export", "");
-        
+
         if (!empty($export)) {
             if ($export === "risk_map") {
                 return Excel::download(new RiskMapExport, config("constants.exports.risk_map_file_name"));
@@ -35,13 +35,13 @@ class ReportController extends Controller
             if ($export === "cncs") {
                 return Excel::download(new CNCSExport, config("constants.exports.asset_list_cncs_file_name"));
             }
-            
+
             if (str_starts_with($export, "cncs_save")) {
                 $year = Carbon::now()->year;
                 $fileName = 'cncs_report_' . $year . '_' . time() . '.pdf';
                 $filePath = 'reports/' . $fileName;
 
-                $assets = Asset::all(); 
+                $assets = Asset::all();
 
                 $pdf = Pdf::loadView('reports.cncs_document', [
                     'year' => $year,
@@ -64,7 +64,7 @@ class ReportController extends Controller
                 $fileName = 'cybersecurity_report_' . $year . '_' . time() . '.pdf';
                 $filePath = 'reports/' . $fileName;
 
-                $assets = Asset::with(['threats.threat', 'threats.controls'])->get(); 
+                $assets = Asset::with(['threats.threat', 'threats.controls'])->get();
 
                 $pdf = Pdf::loadView('reports.cybersecurity_document', [
                     'year' => $year,
@@ -117,7 +117,7 @@ class ReportController extends Controller
             }
 
             $annualReports = $reportQuery->orderBy('created_at', 'desc')->get();
-            
+
             return view("reports.index", [
                 "assets" => Asset::all(),
                 "nodes_array" => $nodes_array,
@@ -125,42 +125,5 @@ class ReportController extends Controller
                 "annualReports" => $annualReports
             ]);
         }
-    }
-    
-    public function assetVulnerabilities(){
-        $assets = Asset::with(['threats.threat', 'type'])
-            ->has('threats')
-            ->get()
-            ->map(function ($asset) {
-                return [
-                    'asset_id' => $asset->id,
-                    'asset_name' => $asset->name,
-                    'asset_type' => $asset->type->name ?? 'N/A',
-                    'total_appreciation' => $asset->totalAppreciation(), //
-                    'vulnerabilities' => $asset->threats->map(function ($assetThreat) use ($asset) {
-                        return [
-                            'threat_id' => $assetThreat->threat->id,
-                            'name' => $assetThreat->threat->name,
-                            'description' => $assetThreat->threat->description,
-                            'probability' => $assetThreat->probability,
-                            'impact' => [
-                                'confidentiality' => $assetThreat->confidentiality_impact,
-                                'availability' => $assetThreat->availability_impact,
-                                'integrity' => $assetThreat->integrity_impact,
-                            ],
-                            'absolute_risk' => $assetThreat->absoluteRisk(), //
-                            'total_risk' => $assetThreat->totalRisk($asset->totalAppreciation()), //
-                            'residual_risk' => $assetThreat->residual_risk,
-                            'risk_accepted' => (bool) $assetThreat->residual_risk_accepted,
-                        ];
-                    })
-                ];
-            });
-
-        return response()->json([
-            'status' => 'success',
-            'count' => $assets->count(),
-            'data' => $assets
-        ]);
     }
 }
