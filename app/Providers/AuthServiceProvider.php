@@ -40,6 +40,10 @@ class AuthServiceProvider extends ServiceProvider
                 ]);
                 return $validated ? Auth::getLastAttempted() : null;
             });
+
+            Gate::define('manage-api-tokens', function ($user) {
+                return $user->role === \App\Enums\UserRole::SECURITY_OFFICER;
+            });
         }
         else {
             Fortify::authenticateUsing(function ($request) {

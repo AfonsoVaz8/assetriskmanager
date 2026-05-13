@@ -13,9 +13,11 @@ class Kernel extends ConsoleKernel
      * @param Schedule $schedule
      * @return void
      */
+
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        $schedule->command('app:fetch-vulnerabilities')->daily();
     }
 
     /**

@@ -57,7 +57,9 @@ class UpdateAssetRequest extends FormRequest
                 )
             ],
             "version" => ["nullable"],
-            "cpe" => ["nullable", "string", "max:255", "regex:/^cpe:(2\.3:[aho]:|\/[aho]:).*$/"]
+            "cpe" => ["nullable", "string", "max:255", "regex:/^cpe:(2\.3:[aho]:|\/[aho]:).*$/"],
+            'information_classification_id' => 'nullable|exists:information_classifications,id',
+            'risk_classification_id' => 'nullable|exists:risk_classifications,id',
         ];
     }
 }

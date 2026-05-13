@@ -37,7 +37,9 @@ class Asset extends Model
         "links_to_id",
         "remainingRiskAccepted",
         "version",
-        "cpe"
+        "cpe",
+        "information_classification_id",
+        "risk_classification_id"
     ];
     /**
      * The attributes that should be cast.
@@ -145,6 +147,22 @@ class Asset extends Model
         return false;
     }
 
+    public function vulnerabilities()
+    {
+    return $this->belongsToMany(Vulnerability::class, 'asset_vulnerability')
+                ->using(AssetVulnerability::class)
+                ->withPivot('probability', 'confidentiality_impact', 'integrity_impact', 'availability_impact', 'residual_risk_accepted')
+                ->withTimestamps();
+    }
+    public function informationClassification()
+    {
+        return $this->belongsTo(InformationClassification::class);
+    }
+
+    public function riskClassification()
+    {
+        return $this->belongsTo(RiskClassification::class);
+    }
     public function logs(): HasMany
     {
         return $this->hasMany(AssetLog::class);

@@ -40,7 +40,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => null,
             "remainingRiskAccepted" => false,
-            "version" => "1.0.0"
+            "version" => "1.0.0",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //2
         Asset::create([
@@ -65,7 +67,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 1,
             "remainingRiskAccepted" => false,
-            "version" => "1.0.1"
+            "version" => "1.0.1",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //3
         Asset::create([
@@ -90,7 +94,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 1,
             "remainingRiskAccepted" => false,
-            "version" => "1.0.2"
+            "version" => "1.0.2",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //4
         Asset::create([
@@ -115,7 +121,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 1,
             "remainingRiskAccepted" => false,
-            "version" => "1.0.3"
+            "version" => "1.0.3",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //5
         Asset::create([
@@ -140,7 +148,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 4,
             "remainingRiskAccepted" => false,
-            "version" => "1.0.4"
+            "version" => "1.0.4",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //6
         Asset::create([
@@ -165,7 +175,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 4,
             "remainingRiskAccepted" => false,
-            "version" => "1.0.5"
+            "version" => "1.0.5",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //7
         Asset::create([
@@ -190,7 +202,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 3,
             "remainingRiskAccepted" => false,
-            "version" => "Windows 11 22H2 (10.0.22621.1194)"
+            "version" => "Windows 11 22H2 (10.0.22621.1194)",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //8
         Asset::create([
@@ -215,7 +229,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 3,
             "remainingRiskAccepted" => false,
-            "version" => "10.22.2"
+            "version" => "10.22.2",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //9
         Asset::create([
@@ -240,7 +256,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 2,
             "remainingRiskAccepted" => false,
-            "version" => "Linux 6.1.9"
+            "version" => "Linux 6.1.9",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //10
         Asset::create([
@@ -265,7 +283,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 2,
             "remainingRiskAccepted" => true,
-            "version" => "2.13"
+            "version" => "2.13",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //11
         Asset::create([
@@ -290,7 +310,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 10,
             "remainingRiskAccepted" => false,
-            "version" => "Ubuntu 22.04.1"
+            "version" => "Ubuntu 22.04.1",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
         //12
         Asset::create([
@@ -315,7 +337,9 @@ class AssetSeeder extends Seeder
             "active" => true,
             "links_to_id" => 10,
             "remainingRiskAccepted" => false,
-            "version" => "50.44"
+            "version" => "50.44",
+            "information_classification_id" => \App\Models\InformationClassification::inRandomOrder()->first()?->id,
+            "risk_classification_id" => \App\Models\RiskClassification::inRandomOrder()->first()?->id,
         ]);
     }
 }

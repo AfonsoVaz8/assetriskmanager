@@ -111,7 +111,9 @@ public function store(StoreAssetRequest $request)
             "export" => $request->has("export"),
             "links_to_id" => $request->input("links_to"),
             "version" => $request->input("version"),
-            "cpe" => $request->input("cpe")
+            "cpe" => $request->input("cpe"),
+            "information_classification_id" => $request->input("information_classification_id"),
+            "risk_classification_id" => $request->input("risk_classification_id")
         ]);
         
         $asset->save();
@@ -143,11 +145,14 @@ public function store(StoreAssetRequest $request)
      *
      * @return Application|Factory|View
      */
-    public function create()
-    {
-        $assetTypes = AssetType::all();
-        return view("assets.create", ["assetTypes" => $assetTypes]);
-    }
+public function create()
+{
+    return view("assets.create", [
+        "assetTypes" => AssetType::all(),
+        "infoClassifications" => \App\Models\InformationClassification::orderBy('level', 'desc')->get(),
+        "riskClassifications" => \App\Models\RiskClassification::orderBy('score', 'desc')->get(),
+    ]);
+}
 
     /**
      * Display the specified resource.
@@ -212,7 +217,9 @@ public function update(UpdateAssetRequest $request, Asset $asset)
             "active" => $request->has("active"),
             "links_to_id" => $request->input("links_to"),
             "version" => $request->input("version"),
-            "cpe" => $request->input("cpe")
+            "cpe" => $request->input("cpe"),
+            "information_classification_id" => $request->input("information_classification_id"),
+            "risk_classification_id" => $request->input("risk_classification_id")
         ]);
         
         Log::channel("application")->info(sprintf("Update Asset %d", $asset->id));

@@ -3,15 +3,13 @@
 namespace App\Services;
 
 use App\Models\Asset;
-use App\Models\Threat;
-use App\Models\AssetThreat;
+use App\Models\Vulnerability;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class NvdApiService
 {
-
-   public function fetchAndAssignVulnerabilities(Asset $asset): array
+    public function fetchAndAssignVulnerabilities(Asset $asset): array
     {
         if (empty($asset->cpe)) {
             return ['success' => false, 'message' => 'O ativo não tem um CPE definido.'];
@@ -34,8 +32,7 @@ class NvdApiService
                 return ['success' => true, 'message' => 'Nenhuma vulnerabilidade conhecida encontrada para este CPE!', 'count' => 0];
             }
 
-            $novasAmeaçasCount = 0;
-            $listaNovasAmeaças = []; 
+            $novasVulnerabilidadesCount = 0;
 
             foreach ($cvesEncontrados as $item) {
                 $cveData = $item['cve'];
@@ -51,35 +48,32 @@ class NvdApiService
 
                 $scoreAppreciation = $this->extractAndMapCvssScore($cveData['metrics'] ?? []);
 
-                $threat = Threat::firstOrCreate(
-                    ['name' => $cveId],
-                    ['description' => $description]
+                $vulnerability = Vulnerability::firstOrCreate(
+                    ['cve_id' => $cveId],
+                    [
+                        'description' => $description,
+                        'source' => 'NVD'
+                    ]
                 );
 
-                $exists = AssetThreat::where('asset_id', $asset->id)
-                                     ->where('threat_id', $threat->id)
-                                     ->exists();
+                $exists = $asset->vulnerabilities()->where('vulnerability_id', $vulnerability->id)->exists();
 
                 if (!$exists) {
-                    AssetThreat::create([
-                        'asset_id' => $asset->id,
-                        'threat_id' => $threat->id,
+                    $asset->vulnerabilities()->attach($vulnerability->id, [
                         'probability' => $scoreAppreciation, 
                         'confidentiality_impact' => $scoreAppreciation,
                         'integrity_impact' => $scoreAppreciation,
                         'availability_impact' => $scoreAppreciation,
                         'residual_risk_accepted' => false,
                     ]);
-                    $novasAmeaçasCount++;
-                    $listaNovasAmeaças[] = $threat; // ADICIONAR À LISTA
+                    $novasVulnerabilidadesCount++;
                 }
             }
 
             return [
                 'success' => true, 
-                'message' => "Pesquisa concluída! Foram importadas {$novasAmeaçasCount} novas vulnerabilidades.",
-                'count' => $novasAmeaçasCount,
-                'new_threats' => $listaNovasAmeaças // DEVOLVER A LISTA AQUI
+                'message' => "Pesquisa concluída! Foram importadas {$novasVulnerabilidadesCount} novas vulnerabilidades.",
+                'count' => $novasVulnerabilidadesCount
             ];
 
         } catch (\Exception $e) {

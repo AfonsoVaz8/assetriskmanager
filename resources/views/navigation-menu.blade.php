@@ -125,18 +125,29 @@
                                     {{ __('Security Officer') }}
                                 </x-dropdown-link>
                             @endcan
-                            <x-dropdown-link :href="route('threats.index')">
-                                {{ __('Threats') }}
-                            </x-dropdown-link>
                             <x-dropdown-link :href="route('controls.index')">
                                 {{ __('Controls') }}
                             </x-dropdown-link>
+
                             @if(Auth::user()->role == \App\Enums\UserRole::SECURITY_OFFICER)
                                 <x-dropdown-link :href="route('import')">
                                     {{ __('Import Files') }}
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('exports')">
                                     {{ __('Exports') }}
+                                </x-dropdown-link>
+                                
+                                <x-dropdown-link :href="route('manage.information-classifications')">
+                                    {{ __('Information Classifications') }}
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('manage.risk-classifications')">
+                                    {{ __('Risk Classifications') }}
+                                </x-dropdown-link>
+                            @endif
+                            @if(Auth::user()->role == \App\Enums\UserRole::ADMINISTRATOR)
+                                <div class="border-t border-gray-100"></div>
+                                <x-dropdown-link :href="route('admin.mail-settings')">
+                                    {{ __('Mail Settings') }}
                                 </x-dropdown-link>
                             @endif
                         </x-slot>
@@ -209,9 +220,11 @@
                             </x-dropdown-link>
 
                             @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                                <x-dropdown-link href="{{ route('api-tokens.index') }}">
-                                    {{ __('API Tokens') }}
-                                </x-dropdown-link>
+                                @if(auth()->user()->role === \App\Enums\UserRole::SECURITY_OFFICER)
+                                    <x-responsive-nav-link href="{{ route('api-tokens.index') }}" :active="request()->routeIs('api-tokens.index')">
+                                        {{ __('API Tokens') }}
+                                    </x-responsive-nav-link>
+                                @endif
                             @endif
 
                             <div class="border-t border-gray-100"></div>
@@ -262,9 +275,24 @@
                     {{ __('Reports') }}
                 </x-responsive-nav-link>
             @endcan
+            @if(Auth::user()->role == \App\Enums\UserRole::ADMINISTRATOR)
+                <x-responsive-nav-link :href="route('admin.mail-settings')" :active="request()->routeIs('admin.mail-settings')">
+                    {{ __('Mail Settings') }}
+                </x-responsive-nav-link>
+            @endif
+            @if(Auth::user()->role === \App\Enums\UserRole::SECURITY_OFFICER || (is_scalar(Auth::user()->role) && Auth::user()->role === \App\Enums\UserRole::SECURITY_OFFICER->value))
+                <x-responsive-nav-link href="{{ route('manage.information-classifications') }}" :active="request()->routeIs('manage.information-classifications')">
+                    {{ __('Information Classifications') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link href="{{ route('manage.risk-classifications') }}" :active="request()->routeIs('manage.risk-classifications')">
+                    {{ __('Risk Classifications') }}
+                </x-responsive-nav-link>
+            @endif
             <x-responsive-nav-link :href="route('assets.index')" :active="request()->routeIs('assets.index')">
                 {{ __('Assets') }}
             </x-responsive-nav-link>
+
         </div>
 
 
@@ -292,10 +320,11 @@
                 </x-responsive-nav-link>
 
                 @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                    <x-responsive-nav-link href="{{ route('api-tokens.index') }}"
-                                               :active="request()->routeIs('api-tokens.index')">
-                        {{ __('API Tokens') }}
-                    </x-responsive-nav-link>
+                    @if(auth()->user()->role === \App\Enums\UserRole::SECURITY_OFFICER)
+                        <x-dropdown-link href="{{ route('api-tokens.index') }}">
+                            {{ __('API Tokens') }}
+                        </x-dropdown-link>
+                    @endif
                 @endif
 
                 <!-- Authentication -->
