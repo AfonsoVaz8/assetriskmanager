@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ReportApiController;
+use App\Http\Controllers\Api\AssetApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,5 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reports/generate', [ReportApiController::class, 'generate']);
 
     Route::get('/assets/vulnerabilities', [ReportApiController::class, 'assetVulnerabilities']);
+
+    Route::get('/assets', [AssetApiController::class, 'index']);
 
 });
