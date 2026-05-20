@@ -136,12 +136,15 @@
                                 <x-dropdown-link :href="route('exports')">
                                     {{ __('Exports') }}
                                 </x-dropdown-link>
-                                
+
                                 <x-dropdown-link :href="route('manage.information-classifications')">
                                     {{ __('Information Classifications') }}
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('manage.risk-classifications')">
                                     {{ __('Risk Classifications') }}
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('manage.company-policies')">
+                                    {{ __('Company Policies') }}
                                 </x-dropdown-link>
                             @endif
                             @if(Auth::user()->role == \App\Enums\UserRole::ADMINISTRATOR)
@@ -274,6 +277,7 @@
                 <x-responsive-nav-link :href="route('reports')" :active="request()->routeIs('reports')">
                     {{ __('Reports') }}
                 </x-responsive-nav-link>
+
             @endcan
             @if(Auth::user()->role == \App\Enums\UserRole::ADMINISTRATOR)
                 <x-responsive-nav-link :href="route('admin.mail-settings')" :active="request()->routeIs('admin.mail-settings')">
@@ -287,6 +291,9 @@
 
                 <x-responsive-nav-link href="{{ route('manage.risk-classifications') }}" :active="request()->routeIs('manage.risk-classifications')">
                     {{ __('Risk Classifications') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('manage.company-policies')">
+                    {{ __('Company Policies') }}
                 </x-responsive-nav-link>
             @endif
             <x-responsive-nav-link :href="route('assets.index')" :active="request()->routeIs('assets.index')">

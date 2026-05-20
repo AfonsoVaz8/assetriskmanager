@@ -18,12 +18,14 @@ use App\Models\AnnualReport;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use App\Services\GlpiApiService;
 
 class ReportController extends Controller
 {
     public function __invoke(Request $request)
     {
         $export = $request->input("export", "");
+        $glpiService = new GlpiApiService();
 
         if (!empty($export)) {
             if ($export === "risk_map") {
@@ -38,14 +40,33 @@ class ReportController extends Controller
 
             if (str_starts_with($export, "cncs_save")) {
                 $year = Carbon::now()->year;
+                // Sem locale no nome do ficheiro
                 $fileName = 'cncs_report_' . $year . '_' . time() . '.pdf';
                 $filePath = 'reports/' . $fileName;
 
-                $assets = Asset::all();
+                $assets = Asset::with(['threats.threat', 'threats.controls'])->get();
+
+                $glpiService = new GlpiApiService();
+                $incidents = $glpiService->getIncidentsByYear($year);
+
+                $quarterlyIncidents = $incidents->groupBy(function ($incident) {
+                    $quarter = Carbon::parse($incident['date'])->quarter;
+                    return 'Q' . $quarter;
+                });
+
+                $reportStats = [
+                    'Q1' => $quarterlyIncidents->get('Q1', collect([]))->count(),
+                    'Q2' => $quarterlyIncidents->get('Q2', collect([]))->count(),
+                    'Q3' => $quarterlyIncidents->get('Q3', collect([]))->count(),
+                    'Q4' => $quarterlyIncidents->get('Q4', collect([]))->count(),
+                    'Total' => $incidents->count(),
+                ];
 
                 $pdf = Pdf::loadView('reports.cncs_document', [
                     'year' => $year,
-                    'assets' => $assets
+                    'assets' => $assets,
+                    'groupedIncidents' => $quarterlyIncidents,
+                    'stats' => $reportStats
                 ]);
 
                 Storage::disk('public')->put($filePath, $pdf->output());
@@ -64,7 +85,7 @@ class ReportController extends Controller
                 $fileName = 'cybersecurity_report_' . $year . '_' . time() . '.pdf';
                 $filePath = 'reports/' . $fileName;
 
-                $assets = Asset::with(['threats.threat', 'threats.controls'])->get();
+                $assets = Asset::all();
 
                 $pdf = Pdf::loadView('reports.cybersecurity_document', [
                     'year' => $year,

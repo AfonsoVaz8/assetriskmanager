@@ -16,6 +16,7 @@ use App\Livewire\Admin\MailSettings;
 use App\Livewire\ManageInformationClassifications;
 use App\Livewire\ManageRiskClassifications;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\CompanyPoliciesManage;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,7 +53,7 @@ Route::middleware([
         Route::view("exports","file-export.index")->name("exports");
         Route::view("imports", "file-import.index")->name("import");
         Route::post("imports", FileImportController::class)->name("import-file");
-    });    
+    });
     Route::get('phpinfo', function () {
         if (config("app.debug")){
             phpinfo();
@@ -63,7 +64,8 @@ Route::middleware([
     })->name('phpinfo');
     Route::get('/manage/information-classifications', ManageInformationClassifications::class)
         ->name('manage.information-classifications');
-        
+
     Route::get('/manage/risk-classifications', ManageRiskClassifications::class)
         ->name('manage.risk-classifications');
-});
+    Route::get('/manage/company-policies', CompanyPoliciesManage::class)
+        ->name('manage.company-policies');});

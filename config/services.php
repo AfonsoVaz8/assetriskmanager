@@ -33,5 +33,10 @@ return [
     'nvd' => [
         'api_key' => env('NVD_API_KEY'),
     ],
+    'glpi' => [
+        'url' => env('GLPI_API_URL'),
+        'app_token' => env('GLPI_APP_TOKEN'),
+        'user_token' => env('GLPI_USER_TOKEN'),
+    ],
 
 ];
