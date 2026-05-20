@@ -40,7 +40,7 @@
                             </li>
                         </ul>
                     </div>
-                    
+
                     <div id="tabs">
                         <div class="hidden p-4" id="asset_list" role="tabpanel"
                              aria-labelledby="asset_list-tab">
@@ -225,14 +225,14 @@
 
                         </div>
                         <div class="hidden p-4" id="annual_reports" role="tabpanel" aria-labelledby="annual-reports-tab">
-                            
+
                             <form method="GET" action="{{ route('reports') }}" class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-700 dark:border-gray-600 flex flex-wrap gap-4 items-end">
-                                
+
                                 <input type="hidden" name="tab" value="stored_reports">
 
                                 <div>
                                     <label for="filter_date" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{__("Generation Date")}}</label>
-                                    <input type="date" id="filter_date" name="filter_date" value="{{ request('filter_date') }}" 
+                                    <input type="date" id="filter_date" name="filter_date" value="{{ request('filter_date') }}"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                 </div>
 
@@ -244,7 +244,7 @@
 
                                 <div>
                                     <label for="filter_type" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{__("Type")}}</label>
-                                    <select id="filter_type" name="filter_type" 
+                                    <select id="filter_type" name="filter_type"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                                         <option value="">{{__("All")}}</option>
                                         <option value="CNCS" {{ request('filter_type') == 'CNCS' ? 'selected' : '' }}>CNCS</option>
@@ -261,7 +261,6 @@
                                     </button>
                                 </div>
                             </form>
-                            {{-- FIM BARRA DE FILTROS --}}
 
                             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border-separate">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -288,10 +287,10 @@
                                 @endforeach
                                 </tbody>
                             </table>
-                            
+
                             <div class="mt-4 flex gap-2">
                                 <a class="inline-flex items-center h-10 px-5 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
-                                    href="{{route("reports","export=cncs_save")}}" target="_blank">{{__("Generate CNCS Report")}}</a>   
+                                    href="{{route("reports","export=cncs_save")}}" target="_blank">{{__("Generate CNCS Report")}}</a>
                                 <a class="inline-flex items-center h-10 px-5 m-2 text-sm text-blue-100 transition-colors duration-150 bg-blue-700 rounded-lg focus:shadow-outline hover:bg-blue-800"
                                     href="{{route("reports","export=cybersecurity_save")}}" target="_blank">{{__("Generate Cyber Report")}}</a>
                             </div>
@@ -379,14 +378,14 @@
 
             window.addEventListener('load', function() {
                 const urlParams = new URLSearchParams(window.location.search);
-                
+
                 if (urlParams.has('tab') && urlParams.get('tab') === 'stored_reports') {
                     setTimeout(function() {
                         const tabBtn = document.getElementById('annual-reports-tab');
                         if (tabBtn) {
                             tabBtn.click();
                         }
-                    }, 150); 
+                    }, 150);
                 }
             });
         </script>

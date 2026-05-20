@@ -11,7 +11,12 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SecurityOfficerController;
 use App\Http\Controllers\ThreatController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VulnerabilityController;
+use App\Livewire\Admin\MailSettings;
+use App\Livewire\ManageInformationClassifications;
+use App\Livewire\ManageRiskClassifications;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\CompanyPoliciesManage;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,6 +46,7 @@ Route::middleware([
     Route::resource("users", UserController::class);
     Route::resource("threats", ThreatController::class);
     Route::resource("controls", ControlController::class);
+    Route::get('/admin/mail-settings', MailSettings::class)->name('admin.mail-settings')->middleware('auth');
     Route::resource("assets", AssetController::class);
     Route::middleware("ensureSecurityOfficer")->group(function () {
         Route::get("reports", ReportController::class)->name("reports");
@@ -56,4 +62,10 @@ Route::middleware([
             abort(404);
         }
     })->name('phpinfo');
-});
+    Route::get('/manage/information-classifications', ManageInformationClassifications::class)
+        ->name('manage.information-classifications');
+
+    Route::get('/manage/risk-classifications', ManageRiskClassifications::class)
+        ->name('manage.risk-classifications');
+    Route::get('/manage/company-policies', CompanyPoliciesManage::class)
+        ->name('manage.company-policies');});

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             PermanentContactPointSeeder::class,
             SecurityOfficerSeeder::class,
             ThreatSeeder::class,
+            ClassificationSeeder::class,
             ControlSeeder::class,
             ControlThreatSeeder::class,
             UserSeeder::class,

@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Asset;
+use App\Models\InformationClassification; 
+use App\Models\RiskClassification;       
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 
@@ -19,14 +21,15 @@ class AssetEditForm extends Component
         $this->assetTypes = $assetTypes;
     }
 
-
     public function render()
     {
         $this->authorize('update', $this->asset);
 
         return view('livewire.asset-edit-form', [
             'asset' => $this->asset,
-            'assetTypes' => $this->assetTypes
+            'assetTypes' => $this->assetTypes,
+            'infoClassifications' => InformationClassification::orderBy('level', 'desc')->get(),
+            'riskClassifications' => RiskClassification::orderBy('score', 'desc')->get(),
         ]);
     }
 }
