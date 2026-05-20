@@ -15,7 +15,13 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('shodan:sync-assets')
+            ->hourly()
+            ->withoutOverlapping();
+
+        $schedule->command('threat-integrations:sync')
+            ->everyFiveMinutes()
+            ->withoutOverlapping();
     }
 
     /**

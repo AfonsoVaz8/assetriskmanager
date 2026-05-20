@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\IpIntelligenceController;
+use App\Http\Controllers\Api\IncidentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +18,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/incidents', [IncidentController::class, 'index']);
+    Route::get('/incidents/{incident}', [IncidentController::class, 'show']);
+    Route::patch('/incidents/{incident}/status', [IncidentController::class, 'updateStatus']);
+    Route::post('/incidents/{incident}/reopen', [IncidentController::class, 'reopen']);
+    Route::post('/ip-intelligence/normalize', [IpIntelligenceController::class, 'normalize']);
 });

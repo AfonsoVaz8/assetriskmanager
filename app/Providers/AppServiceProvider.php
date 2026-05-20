@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Domain\ThreatMonitoring\Services\MicrosoftGraphProvider;
+use App\Domain\ThreatMonitoring\Services\ThreatProviderManager;
+use App\Models\Asset;
+use App\Observers\AssetObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +17,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->bind(ThreatProviderManager::class, function ($app) {
+            return new ThreatProviderManager([
+                $app->make(MicrosoftGraphProvider::class),
+            ]);
+        });
     }
 
     /**
@@ -23,6 +31,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Asset::observe(AssetObserver::class);
     }
 }

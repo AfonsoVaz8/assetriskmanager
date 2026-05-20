@@ -11,6 +11,8 @@ use App\Models\Asset;
 use App\Models\AssetLog;
 use App\Models\AssetType;
 use App\Models\User;
+use App\Services\AssetExternalExposureService;
+use App\Services\AssetCpeInferenceService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
@@ -89,7 +91,7 @@ public function index(Request $request)
      * @param StoreAssetRequest $request
      * @return RedirectResponse
      */
-public function store(StoreAssetRequest $request)
+    public function store(StoreAssetRequest $request, AssetCpeInferenceService $assetCpeInferenceService)
     {
         $manufacturer_contract_type = $request->input("manufacturer_contract_type");
         $asset = new Asset;
@@ -108,12 +110,14 @@ public function store(StoreAssetRequest $request)
             "mac_address" => $request->input("mac_address"),
             "fqdn" => $request->input("fqdn"),
             "ip_address" => $request->input("ip_address"),
+            "allowed_open_ports" => $this->parseAllowedOpenPorts($request->input("allowed_open_ports")),
             "export" => $request->has("export"),
             "links_to_id" => $request->input("links_to"),
             "version" => $request->input("version")
         ]);
         
         $asset->save();
+        $assetCpeInferenceService->syncFromAsset($asset);
 
         $manager = User::find($request->input("manager"));
         
@@ -154,9 +158,45 @@ public function store(StoreAssetRequest $request)
      * @param Asset $asset
      * @return Application|Factory|View
      */
-    public function show(Asset $asset)
+    public function show(Asset $asset, AssetExternalExposureService $assetExternalExposureService)
     {
-        return view("assets.show", ["asset" => $asset, "children" => $asset->availableChildren()]);
+        $asset->loadMissing([
+            'type',
+            'manager',
+            'linksTo',
+            'children.type',
+            'observedCpes',
+            'discoveredHosts.scope',
+            'discoveredHosts.latestEnrichmentRun',
+            'discoveredHostEnrichmentRuns.discoveredHost.scope',
+            'latestDiscoveredHostEnrichmentRun',
+        ]);
+
+        return view("assets.show", [
+            "asset" => $asset,
+            "children" => $asset->availableChildren(),
+            "externalExposure" => $assetExternalExposureService->buildProfile($asset),
+            "assetExternalExposureService" => $assetExternalExposureService,
+        ]);
+    }
+
+    public function viewDiscoveredHostDetails(Asset $asset): RedirectResponse
+    {
+        $this->authorize('view', $asset);
+
+        $host = $asset->discoveredHosts()
+            ->with('scope')
+            ->whereNotNull('attack_surface_scope_id')
+            ->orderByDesc('last_seen_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$host || !$host->scope) {
+            return redirect()->route('assets.edit', $asset->id)
+                ->with('status', __('This asset does not have any linked discovered host details yet.'));
+        }
+
+        return redirect()->route('attack-surface-scopes.hosts.show', [$host->scope, $host]);
     }
 
     /**
@@ -167,6 +207,8 @@ public function store(StoreAssetRequest $request)
      */
     public function edit(Asset $asset)
     {
+        $asset->loadMissing('latestShodanReport', 'observedCpes');
+
         return view("assets.edit", [
             "asset" => $asset,
             "assetTypes" => AssetType::all(),
@@ -181,7 +223,7 @@ public function store(StoreAssetRequest $request)
      * @param Asset $asset
      * @return RedirectResponse
      */
-public function update(UpdateAssetRequest $request, Asset $asset)
+public function update(UpdateAssetRequest $request, Asset $asset, AssetCpeInferenceService $assetCpeInferenceService)
     {
         $user = Auth::user();
         $manufacturer_contract_type = $request->input("manufacturer_contract_type");
@@ -204,6 +246,7 @@ public function update(UpdateAssetRequest $request, Asset $asset)
             "mac_address" => $request->input("mac_address"),
             "fqdn" => $request->input("fqdn"),
             "ip_address" => $request->input("ip_address"),
+            "allowed_open_ports" => $this->parseAllowedOpenPorts($request->input("allowed_open_ports")),
             "availability_appreciation" => $request->input("availability_appreciation"),
             "integrity_appreciation" => $request->input("integrity_appreciation"),
             "confidentiality_appreciation" => $request->input("confidentiality_appreciation"),
@@ -212,6 +255,9 @@ public function update(UpdateAssetRequest $request, Asset $asset)
             "links_to_id" => $request->input("links_to"),
             "version" => $request->input("version")
         ]);
+        $asset = $asset->fresh();
+        $assetCpeInferenceService->syncFromAsset($asset);
+        $assetCpeInferenceService->applyManualOverride($asset->fresh(), $request->input("detected_cpe"));
         
         Log::channel("application")->info(sprintf("Update Asset %d", $asset->id));
 
@@ -235,6 +281,20 @@ public function update(UpdateAssetRequest $request, Asset $asset)
         ]);
         
         return redirect()->route("assets.edit", $asset->id)->with("status", __("Asset Updated"));
+    }
+
+    private function parseAllowedOpenPorts(?string $value): array
+    {
+        if (blank($value)) {
+            return [];
+        }
+
+        return collect(explode(',', $value))
+            ->map(fn (string $port) => (int) trim($port))
+            ->filter(fn (int $port) => $port > 0)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

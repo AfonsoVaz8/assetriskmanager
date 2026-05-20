@@ -40,6 +40,7 @@ class StoreAssetRequest extends FormRequest
             "manufacturer_contract_provider" => ["nullable"],
             "mac_address" => ["nullable"],
             "ip_address" => ["nullable"],
+            "allowed_open_ports" => ["nullable", "string", "max:1000"],
             "export" => [],
             "links_to" => [Rule::exists("assets", "id"), "nullable"],
             "version" => []

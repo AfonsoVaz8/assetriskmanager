@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Auth;
 
 class Asset extends Model
@@ -29,6 +30,7 @@ class Asset extends Model
         "mac_address",
         "fqdn",
         "ip_address",
+        "allowed_open_ports",
         "availability_appreciation",
         "integrity_appreciation",
         "confidentiality_appreciation",
@@ -36,7 +38,11 @@ class Asset extends Model
         "active",
         "links_to_id",
         "remainingRiskAccepted",
-        "version"
+        "version",
+        "detected_cpe",
+        "detected_cpe_confidence",
+        "detected_cpe_source",
+        "detected_cpe_reasons",
     ];
     /**
      * The attributes that should be cast.
@@ -45,6 +51,8 @@ class Asset extends Model
      */
     protected $casts = [
         'manufacturer_contract_type' => ManufacturerContractType::class,
+        'allowed_open_ports' => 'array',
+        'detected_cpe_reasons' => 'array',
     ];
 
     /**
@@ -147,5 +155,35 @@ class Asset extends Model
     public function logs(): HasMany
     {
         return $this->hasMany(AssetLog::class);
+    }
+
+    public function discoveredHosts(): HasMany
+    {
+        return $this->hasMany(DiscoveredHost::class);
+    }
+
+    public function discoveredHostEnrichmentRuns(): HasMany
+    {
+        return $this->hasMany(DiscoveredHostEnrichmentRun::class);
+    }
+
+    public function shodanReports(): HasMany
+    {
+        return $this->hasMany(AssetShodanReport::class);
+    }
+
+    public function latestShodanReport(): HasOne
+    {
+        return $this->hasOne(AssetShodanReport::class)->latestOfMany();
+    }
+
+    public function latestDiscoveredHostEnrichmentRun(): HasOne
+    {
+        return $this->hasOne(DiscoveredHostEnrichmentRun::class)->latestOfMany();
+    }
+
+    public function observedCpes(): HasMany
+    {
+        return $this->hasMany(AssetObservedCpe::class)->orderByDesc('is_primary')->orderByDesc('score')->orderBy('cpe');
     }
 }

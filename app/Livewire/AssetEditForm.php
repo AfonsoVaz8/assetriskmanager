@@ -17,6 +17,7 @@ class AssetEditForm extends Component
 
     public function mount($asset, $assetTypes)
     {
+        $asset->loadMissing('latestShodanReport');
         $this->asset = $asset;
         $this->assetTypes = $assetTypes;
     }
@@ -34,7 +35,7 @@ class AssetEditForm extends Component
 
         return view('livewire.asset-edit-form', [
             'asset' => $this->asset,
-            'assetTypes' => $this->assetTypes
+            'assetTypes' => $this->assetTypes,
         ]);
     }
 }
