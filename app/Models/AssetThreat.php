@@ -16,6 +16,15 @@ class AssetThreat extends Model
         "integrity_impact",
         "residual_risk",
         "residual_risk_accepted",
+        "auto_generated",
+        "source",
+        "source_key",
+        "source_context",
+    ];
+
+    protected $casts = [
+        'auto_generated' => 'boolean',
+        'source_context' => 'array',
     ];
 
     /**
@@ -90,5 +99,37 @@ class AssetThreat extends Model
     public function controls()
     {
         return $this->hasMany(AssetThreatControl::class);
+    }
+
+    public function contextSummary(): ?string
+    {
+        if (!$this->auto_generated) {
+            return null;
+        }
+
+        $context = $this->source_context ?? [];
+        $parts = [];
+
+        if ($port = data_get($context, 'port')) {
+            $parts[] = "Port {$port}";
+        }
+
+        if ($vulnerability = data_get($context, 'vulnerability')) {
+            $parts[] = "Vulnerability {$vulnerability}";
+        }
+
+        if ($cpe = data_get($context, 'cpe')) {
+            $parts[] = "CPE {$cpe}";
+        }
+
+        if ($sourceLabel = data_get($context, 'source_label')) {
+            $parts[] = "Source {$sourceLabel}";
+        }
+
+        if ($reason = data_get($context, 'reason')) {
+            $parts[] = $reason;
+        }
+
+        return empty($parts) ? null : implode(' | ', $parts);
     }
 }

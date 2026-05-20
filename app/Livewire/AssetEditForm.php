@@ -3,8 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Asset;
-use App\Models\InformationClassification; 
-use App\Models\RiskClassification;       
+use App\Models\InformationClassification;
+use App\Models\RiskClassification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Models\Asset;
+use App\Models\Incident;
 use App\Models\User;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
@@ -24,6 +25,8 @@ class DashboardController extends Controller
         $tasks = array();
         /* @var $user User */
         $user = Auth::user();
+        $incidentSummary = [];
+        $recentIncidents = collect();
         /* @var $asset Asset */
         foreach ($user->assets()->get() as $asset) {
             //Check for non-existent asset valuation
@@ -77,10 +80,44 @@ class DashboardController extends Controller
             $assetsWithControlsToValidate = Asset::all()->filter(function ($asset) {
                 return $asset->hasUnvalidatedControls() && !$asset->remainingRiskAccepted && $asset->active;
             });
+
+            $incidentQuery = Incident::query()->with('integration');
+
+            $incidentSummary = [
+                'open' => (clone $incidentQuery)->where('status', 'open')->count(),
+                'in_progress' => (clone $incidentQuery)->where('status', 'in_progress')->count(),
+                'resolved' => (clone $incidentQuery)->where('status', 'resolved')->count(),
+                'dismissed' => (clone $incidentQuery)->where('status', 'dismissed')->count(),
+                'high' => (clone $incidentQuery)->where('severity', 'high')->count(),
+                'medium' => (clone $incidentQuery)->where('severity', 'medium')->count(),
+            ];
+
+            $recentIncidents = Incident::query()
+                ->with('integration')
+                ->select([
+                    'id',
+                    'integration_id',
+                    'title',
+                    'status',
+                    'severity',
+                    'event_count',
+                    'affected_principal',
+                    'affected_principal_display',
+                    'last_seen_at',
+                ])
+                ->latest('last_seen_at')
+                ->limit(12)
+                ->get();
         }
         else {
             $assetsWithControlsToValidate = array();
         }
-        return view('dashboard', ["assetsWithControlsToValidate" => $assetsWithControlsToValidate, "tasks" => $tasks]);
+
+        return view('dashboard', [
+            "assetsWithControlsToValidate" => $assetsWithControlsToValidate,
+            "tasks" => $tasks,
+            "incidentSummary" => $incidentSummary,
+            "recentIncidents" => $recentIncidents,
+        ]);
     }
 }

@@ -2,12 +2,16 @@ FROM php:8.3-fpm-bookworm AS base
 
 WORKDIR /workdir
 
+ARG NUCLEI_VERSION=3.8.0
+ARG SUBFINDER_VERSION=2.6.6
+
 ENV TZ=${TIMEZONE} LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_HOME=/composer
 
 COPY --from=composer:2  /usr/bin/composer /usr/bin/composer
 
 RUN apt-get -qq update && apt-get -qq -y install --no-install-recommends locales git unzip nmap build-essential \
     libzip-dev libicu-dev libonig-dev libpng-dev libldap2-dev libxml2 libxml2-dev libcurl4-openssl-dev libreadline-dev \
+    libjson-perl libxml-writer-perl libnet-ssleay-perl libio-socket-ssl-perl \
     libkrb5-dev libc-client-dev libpq-dev libsqlite3-dev zlib1g-dev vim nano ca-certificates curl gnupg
 RUN mkdir -p /etc/apt/keyrings
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
@@ -21,6 +25,18 @@ RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl && docker-php-
 RUN docker-php-ext-configure intl && docker-php-ext-install -j$(nproc) intl
 RUN docker-php-ext-install -j$(nproc) pdo pdo_pgsql pdo_sqlite zip bcmath gd ldap soap curl mbstring xml
 RUN composer config -g process-timeout 3600 && composer config -g repos.packagist composer https://packagist.org
+RUN git clone --depth 1 https://github.com/sullo/nikto.git /opt/nikto \
+    && ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto \
+    && chmod +x /opt/nikto/program/nikto.pl
+RUN curl -fsSL -o /tmp/nuclei.zip https://github.com/projectdiscovery/nuclei/releases/download/v${NUCLEI_VERSION}/nuclei_${NUCLEI_VERSION}_linux_amd64.zip \
+    && unzip -q /tmp/nuclei.zip -d /usr/local/bin \
+    && chmod +x /usr/local/bin/nuclei \
+    && rm -f /tmp/nuclei.zip
+RUN git clone --depth 1 https://github.com/projectdiscovery/nuclei-templates.git /opt/nuclei-templates
+RUN curl -fsSL -o /tmp/subfinder.zip https://github.com/projectdiscovery/subfinder/releases/download/v${SUBFINDER_VERSION}/subfinder_${SUBFINDER_VERSION}_linux_amd64.zip \
+    && unzip -q /tmp/subfinder.zip -d /usr/local/bin \
+    && chmod +x /usr/local/bin/subfinder \
+    && rm -f /tmp/subfinder.zip
 
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY ./docker/php/php.deploy-override.ini /usr/local/etc/php/conf.d/

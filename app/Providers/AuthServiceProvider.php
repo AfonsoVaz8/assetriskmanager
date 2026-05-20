@@ -2,7 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Integration;
+use App\Models\Incident;
 use App\Models\User;
+use App\Models\AttackSurfaceScope;
+use App\Policies\AttackSurfaceScopePolicy;
+use App\Policies\IntegrationPolicy;
+use App\Policies\IncidentPolicy;
 use Hash;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +22,9 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
+        Integration::class => IntegrationPolicy::class,
+        Incident::class => IncidentPolicy::class,
+        AttackSurfaceScope::class => AttackSurfaceScopePolicy::class,
     ];
 
     /**

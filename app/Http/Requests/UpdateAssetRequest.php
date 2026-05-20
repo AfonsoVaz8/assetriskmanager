@@ -41,6 +41,8 @@ class UpdateAssetRequest extends FormRequest
             "manufacturer_contract_provider" => ["nullable"],
             "mac_address" => ["nullable"],
             "ip_address" => ["nullable"],
+            "detected_cpe" => ["nullable", "string", "max:500", "regex:/^cpe:(2\\.3:|\\/)/i"],
+            "allowed_open_ports" => ["nullable", "string", "max:1000"],
             "availability_appreciation" => ["numeric", "min:1", "max:5"],
             "integrity_appreciation" => ["numeric", "min:1", "max:5"],
             "confidentiality_appreciation" => ["numeric", "min:1", "max:5"],
