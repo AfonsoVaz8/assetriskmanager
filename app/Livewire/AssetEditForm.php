@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Asset;
+use App\Models\InformationClassification;
+use App\Models\RiskClassification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 
@@ -13,20 +15,10 @@ class AssetEditForm extends Component
     public $asset;
     public $assetTypes;
 
-    protected $listeners = ['managerUpdated' => 'updateManager'];
-
     public function mount($asset, $assetTypes)
     {
-        $asset->loadMissing('latestShodanReport');
         $this->asset = $asset;
         $this->assetTypes = $assetTypes;
-    }
-
-    public function updateManager($managerId)
-    {
-        $this->asset->update(['manager_id' => $managerId]);
-        $this->asset->refresh();
-        session()->flash('status', __('Manager updated successfully'));
     }
 
     public function render()
@@ -36,6 +28,8 @@ class AssetEditForm extends Component
         return view('livewire.asset-edit-form', [
             'asset' => $this->asset,
             'assetTypes' => $this->assetTypes,
+            'infoClassifications' => InformationClassification::orderBy('level', 'desc')->get(),
+            'riskClassifications' => RiskClassification::orderBy('score', 'desc')->get(),
         ]);
     }
 }

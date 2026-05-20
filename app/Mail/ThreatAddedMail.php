@@ -23,7 +23,7 @@ class ThreatAddedMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Nova Ameaça Identificada: ' . $this->asset->name)
+        return $this->subject('New Threat Identified: ' . $this->asset->name)
                     ->view('emails.threat_added');
     }
 }

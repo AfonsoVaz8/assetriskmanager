@@ -2,65 +2,36 @@
 
 namespace App\Livewire;
 
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\Asset;
+use App\Models\User;
 use Livewire\Component;
 
-/**
- * This livewire component is present on the Asset edit/manage page to edit the current manager of an asset.
- * If an asset already has a manager, it'll present the current one with an edit button.
- * On click of the edit button, it'll present the UserSearch Livewire component.
- */
 class AssetManagerManage extends Component
 {
-    use AuthorizesRequests;
+    public Asset $asset;
+    public $manager_id;
+    public $search = '';
 
-    public $asset;
-    public $showSearch = false;
-    public $selectedManagerId;
-
-    protected $listeners = ['managerSelected' => 'updateSelectedManager'];
-
-    public function updateSelectedManager($managerId)
-    {
-        $this->selectedManagerId = $managerId;
-    }
-
-    public function mount($asset)
+    public function mount(Asset $asset)
     {
         $this->asset = $asset;
-        $this->selectedManagerId = $asset->manager_id;
+        $this->manager_id = old('manager_id', $asset->manager_id);
     }
 
-    /**
-     * @throws AuthorizationException
-     */
     public function render()
     {
-        $this->authorize('update', $this->asset);
+        $users = User::query()
+            ->where(function($query) {
+                $query->where('name', 'like', '%' . $this->search . '%')
+                      ->orWhere('email', 'like', '%' . $this->search . '%');
+            })
+            ->when($this->manager_id, fn($q) => $q->orWhere('id', $this->manager_id))
+            ->orderBy('name')
+            ->limit(20)
+            ->get();
 
-        return view('livewire.asset-manager-manage', ["asset" => $this->asset]);
+        return view('livewire.asset-manager-manage', [
+            'users' => $users,
+        ]);
     }
-
-    public function toggleSearch()
-    {
-        $this->showSearch = true;
-    }
-
-    public function cancelEdit()
-    {
-        $this->showSearch = false;
-        $this->selectedManagerId = $this->asset->manager_id;
-    }
-
-public function confirmSelection()
-    {
-        $this->dispatch('managerUpdated', $this->selectedManagerId);
-        
-        $this->asset->manager_id = $this->selectedManagerId;
-        $this->asset->load('manager');
-        
-        $this->showSearch = false;
-    }
-
 }

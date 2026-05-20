@@ -19,6 +19,8 @@ use App\Mail\ThreatAddedMail;
 use App\Mail\ControlAddedMail;     
 use App\Models\Control;            
 use Illuminate\Support\Facades\Mail; 
+use App\Services\NvdApiService;
+use App\Mail\NvdThreatsImportedMail;
 
 
 /**
@@ -349,5 +351,38 @@ class AssetThreatsControlsManage extends Component
         ]);
         Log::channel("application")->info(sprintf("Toggle Validation of Control %d on Asset %d",
             $asset_threat_control->control_id, $this->asset->id));
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+public function importNvdVulnerabilities(NvdApiService $nvdService)
+    {
+        $this->authorize("update", $this->asset);
+
+        if (empty($this->asset->cpe)) {
+            session()->flash('nvd_error', __('This asset has no CPE defined. Edit the asset first.'));
+            return;
+        }
+
+        $result = $nvdService->fetchAndAssignVulnerabilities($this->asset);
+
+        if ($result['success']) {
+            session()->flash('nvd_success', $result['message']);
+            $this->dispatch("threatModified"); 
+            
+            if (!empty($result['new_threats']) && $this->asset->manager && !empty($this->asset->manager->email)) {
+                try {
+                    Mail::to($this->asset->manager->email)->send(
+                        new NvdThreatsImportedMail($this->asset, $result['new_threats'])
+                    );
+                } catch (\Exception $e) {
+                    Log::channel("application")->error("Failure to send the NVD email: " . $e->getMessage());
+                }
+            }
+            
+        } else {
+            session()->flash('nvd_error', $result['message']);
+        }
     }
 }

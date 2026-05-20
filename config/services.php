@@ -30,6 +30,14 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    'nvd' => [
+        'api_key' => env('NVD_API_KEY'),
+    ],
+    'glpi' => [
+        'url' => env('GLPI_API_URL'),
+        'app_token' => env('GLPI_APP_TOKEN'),
+        'user_token' => env('GLPI_USER_TOKEN'),
+    ],
 
     'shodan' => [
         'base_url' => env('SHODAN_BASE_URL', 'https://api.shodan.io'),

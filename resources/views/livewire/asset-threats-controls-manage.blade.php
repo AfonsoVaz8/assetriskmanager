@@ -7,12 +7,24 @@
                 {{__("Add Threat")}}
             </button>
         </div>
-    @else
+@else
         <h2 class="text-center text-2xl font-normal leading-normal mt-0 mb-2">{{__("Threats")}}</h2>
-        <div class="flex justify-center">
+        
+        @if (session()->has('nvd_success'))
+            <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 text-center shadow-sm">
+                {{ session('nvd_success') }}
+            </div>
+        @endif
+        @if (session()->has('nvd_error'))
+            <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 text-center shadow-sm">
+                {{ session('nvd_error') }}
+            </div>
+        @endif
+
+        <div class="flex justify-center gap-4 mb-4">
             <button type="button"
                     wire:click="openCreateThreatDialog"
-                    class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                    class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
                 {{__("Add Threat")}}
             </button>
         </div>

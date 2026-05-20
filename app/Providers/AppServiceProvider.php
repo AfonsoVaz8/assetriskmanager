@@ -7,6 +7,10 @@ use App\Domain\ThreatMonitoring\Services\ThreatProviderManager;
 use App\Models\Asset;
 use App\Observers\AssetObserver;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Crypt;
+use App\Models\Setting;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +35,33 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        try {
+            if (Schema::hasTable('settings')) {
+                $settings = Setting::where('key', 'like', 'mail_%')->pluck('value', 'key')->toArray();
+
+                if (!empty($settings)) {
+                    Config::set('mail.mailers.smtp.host', $settings['mail_host'] ?? config('mail.mailers.smtp.host'));
+                    Config::set('mail.mailers.smtp.port', $settings['mail_port'] ?? config('mail.mailers.smtp.port'));
+
+                    $encryption = $settings['mail_encryption'] ?? config('mail.mailers.smtp.encryption');
+                    Config::set('mail.mailers.smtp.encryption', $encryption === 'none' ? null : $encryption);
+
+                    Config::set('mail.mailers.smtp.username', empty($settings['mail_username']) ? null : $settings['mail_username']);
+
+                    if (!empty($settings['mail_password'])) {
+                        Config::set('mail.mailers.smtp.password', Crypt::decryptString($settings['mail_password']));
+                    } else {
+                        Config::set('mail.mailers.smtp.password', null);
+                    }
         Asset::observe(AssetObserver::class);
+    }
+}
+
+                    Config::set('mail.from.address', $settings['mail_from_address'] ?? config('mail.from.address'));
+                    Config::set('mail.from.name', $settings['mail_from_name'] ?? config('mail.from.name'));
+                }
+            }
+        } catch (\Exception $e) {
+        }
     }
 }

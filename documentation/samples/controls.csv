@@ -2,3 +2,21 @@ name, description
 Password Reset,Forced Password Reset Policy every 30 days.
 ORM,Upgrade the platform's SQL queries to use an ORM.
 Two-Factor Authentication,Mandatory Two-Factor Authentication
+Principle of Least Privilege,Ensure users and systems only have the permissions strictly necessary for their functions.
+Periodic Access Review,Regular audit of user accounts to disable access for former employees and remove excessive privileges.
+Web Application Firewall (WAF),Implementation of WAF to filter malicious HTTP/HTTPS traffic and mitigate web attacks like SQLi and XSS.
+Network Segmentation,Dividing the network into isolated subnets to contain lateral movement of attackers if an asset is compromised.
+Mandatory VPN (Remote Access),Require connection via VPN with strong encryption for any administrative access to internal systems.
+Encryption in Transit (TLS),Ensure all network communications use strong encryption protocols like TLS 1.2 or higher.
+Encryption at Rest,Encryption of databases and backups to protect sensitive data in case of physical theft of disks or servers.
+Strict Input Validation,Implementation of rigorous validation on all user-supplied data to prevent code injections.
+Continuous Patch Management,Scheduled process to quickly apply security updates to operating systems and software libraries.
+Static Application Security Testing (SAST),Use of automated tools in the development pipeline to detect security flaws in the code before deployment.
+Centralized Log Management,Collection of system and application logs to a secure central server to facilitate auditing and incident response.
+Endpoint Detection and Response (EDR),Implementation of advanced security software on workstations and servers to detect anomalous behaviors.
+Incident Response Plan,Maintenance and regular testing of a documented plan that dictates the exact steps to take in case of a security breach.
+Anti-Phishing Training,Annual training and practical phishing simulations to educate employees not to fall for social engineering.
+Offline and Immutable Backups,Creation of backups that cannot be altered or deleted by the main network to mitigate ransomware attacks.
+Disable Unnecessary Ports and Services,Closing of unnecessary network ports and disabling of non-essential services on servers.
+Account Lockout Policy,Automatic account lockout policy after a set number of failed login attempts to protect against brute force attacks.
+Enterprise Password Manager,Provision and mandatory use of a password vault to prevent employees from reusing credentials.

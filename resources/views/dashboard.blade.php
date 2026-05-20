@@ -117,7 +117,6 @@
                         </tbody>
                     </table>
                 @endif
-
                 @if(count($tasks)>0)
                     <h2 class="text-center text-2xl font-normal leading-normal mt-0 mb-2">{{__("Pending Tasks")}}</h2>
                     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -157,7 +156,6 @@
                                 </td>
                             </tr>
                         @endforeach
-
                         </tbody>
                     </table>
                 @endif

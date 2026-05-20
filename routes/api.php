@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\IpIntelligenceController;
 use App\Http\Controllers\Api\IncidentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ReportApiController;
+use App\Http\Controllers\Api\AssetApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,10 +18,21 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::middleware('auth:sanctum')->group(function () {
 
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    Route::get('/reports', [ReportApiController::class, 'index']);
+
+    Route::post('/reports/generate', [ReportApiController::class, 'generate']);
+
+    Route::get('/assets/vulnerabilities', [ReportApiController::class, 'assetVulnerabilities']);
+
+    Route::get('/assets', [AssetApiController::class, 'index']);
+
+});
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/incidents', [IncidentController::class, 'index']);
     Route::get('/incidents/{incident}', [IncidentController::class, 'show']);

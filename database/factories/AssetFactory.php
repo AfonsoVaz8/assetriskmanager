@@ -17,7 +17,8 @@ class AssetFactory extends Factory
     public function definition()
     {
         return [
-            //
+            'information_classification_id' => InformationClassification::inRandomOrder()->first()?->id,
+            'risk_classification_id' => RiskClassification::inRandomOrder()->first()?->id,
         ];
     }
 }
