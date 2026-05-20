@@ -74,7 +74,8 @@ class GLPI:
         items = items if isinstance(items, list) else items.get("data", [])
 
         for i in items:
-            if str(i.get("custom_fields", {}).get("arm_id")) == str(arm_id):
+            current_arm_id = i.get("custom_fields", {}).get("arm_id")
+            if str(current_arm_id) == str(arm_id):
                 return i.get("id")
 
         return None
@@ -161,7 +162,7 @@ def build_payload(glpi, asset):
         "location": location_id,
 
         "custom_fields": {
-            "arm_id": asset.get("asset_id"),
+            "arm_id": str(asset.get("asset_id")),
             "version": asset.get("version"),
             "ip_address": asset.get("ip_address"),
             "mac_address": asset.get("mac_address"),
