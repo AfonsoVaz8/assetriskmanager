@@ -168,6 +168,85 @@
                            value="{{$asset->ip_address}}">
                 </div>
                 <div class="mb-6">
+                    <label for="allowed_open_ports"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{__("Allowed Open Ports")}}</label>
+                    <input type="text" id="allowed_open_ports" name="allowed_open_ports"
+                           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                           value="{{ implode(',', $asset->allowed_open_ports ?? []) }}"
+                           placeholder="80,443,22">
+                    <p class="mt-2 text-sm text-gray-500">{{ __("Optional. Ports listed here will not generate Shodan open-port threats for this asset.") }}</p>
+                </div>
+                <div class="mb-6">
+                    <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __("Shodan Intelligence") }}</h3>
+                            <span class="text-xs uppercase tracking-wide px-2 py-1 rounded-full
+                                {{$asset->latestShodanReport?->status === 'error' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}}">
+                                {{ $asset->latestShodanReport?->status ? __(ucfirst($asset->latestShodanReport->status)) : __('Pending') }}
+                            </span>
+                        </div>
+                        @if($asset->latestShodanReport)
+                            @php($report = $asset->latestShodanReport)
+                            <dl class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
+                                <div>
+                                    <dt class="font-medium text-gray-900 dark:text-white">{{ __("Data Source") }}</dt>
+                                    <dd>{{ data_get($report->raw_payload, '_source_label', __('Unknown')) }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="font-medium text-gray-900 dark:text-white">{{ __("Last Sync") }}</dt>
+                                    <dd>{{ $report->synced_at ? $report->synced_at->timezone(config('app.timezone'))->toDayDateTimeString() : __("Unknown") }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="font-medium text-gray-900 dark:text-white">{{ __("Last Seen By Shodan") }}</dt>
+                                    <dd>{{ $report->last_seen_at ? $report->last_seen_at->timezone(config('app.timezone'))->toDayDateTimeString() : __("Unknown") }}</dd>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <dt class="font-medium text-gray-900 dark:text-white">{{ __("Open Ports") }}</dt>
+                                    <dd>
+                                        @if(!empty($report->open_ports))
+                                            {{ implode(', ', $report->open_ports) }}
+                                        @else
+                                            {{ __("No open ports reported.") }}
+                                        @endif
+                                    </dd>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <dt class="font-medium text-gray-900 dark:text-white">{{ __("Vulnerabilities (CVEs)") }}</dt>
+                                    <dd>
+                                        @if(!empty($report->vulnerabilities))
+                                            <span class="flex flex-wrap gap-1">
+                                                @foreach($report->vulnerabilities as $cve)
+                                                    <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">{{$cve}}</span>
+                                                @endforeach
+                                            </span>
+                                        @else
+                                            {{ __("No vulnerabilities reported.") }}
+                                        @endif
+                                    </dd>
+                                </div>
+                                @if(data_get($report->raw_payload, '_partial'))
+                                    <div class="md:col-span-2 text-amber-700 dark:text-amber-400">
+                                        <dt class="font-medium">{{ __("Coverage Notice") }}</dt>
+                                        <dd>{{ data_get($report->raw_payload, '_partial_reason') }}</dd>
+                                    </div>
+                                @endif
+                                @if($report->status === 'error' && $report->error)
+                                    <div class="md:col-span-2 text-red-600 dark:text-red-400">
+                                        <dt class="font-medium">{{ __("Last Error") }}</dt>
+                                        <dd>{{$report->error}}</dd>
+                                    </div>
+                                @endif
+                            </dl>
+                        @else
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                {{ $asset->ip_address
+                                    ? __("No Shodan sync has been completed yet. This asset will be queried when your organization has an active Shodan integration.")
+                                    : __("Provide an IP address to start collecting Shodan intelligence.") }}
+                            </p>
+                        @endif
+                    </div>
+                </div>
+                <div class="mb-6">
                     <label for="mac_address"
                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{__("MAC Address")}}</label>
                     <input type="text" id="mac_address" name="mac_address"
@@ -180,6 +259,25 @@
                     <input type="text" id="fqdn" name="fqdn"
                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                            value="{{$asset->fqdn}}">
+                </div>
+                <div class="mb-6">
+                    <label for="detected_cpe"
+                           class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{__("Assigned CPE")}}</label>
+                    <input type="text" id="detected_cpe" name="detected_cpe"
+                           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                           value="{{$asset->detected_cpe}}"
+                           placeholder="cpe:2.3:a:apache:http_server:2.4.58:*:*:*:*:*:*:*">
+                    <p class="mt-2 text-sm text-gray-500">
+                        {{ __("This is the CPE currently assigned to the asset. You can override it manually here, or clear it to fall back to the best inferred CPE from enrichment.") }}
+                    </p>
+                    @if($asset->detected_cpe_source || $asset->detected_cpe_confidence)
+                        <p class="mt-1 text-xs text-gray-500">
+                            {{ __("Current source") }}: {{ $asset->detected_cpe_source ? \Illuminate\Support\Str::of($asset->detected_cpe_source)->replace('_', ' ')->title() : __("Unknown") }}
+                            @if($asset->detected_cpe_confidence)
+                                / {{ __("Confidence") }}: {{ \Illuminate\Support\Str::of($asset->detected_cpe_confidence)->title() }}
+                            @endif
+                        </p>
+                    @endif
                 </div>
                 <div class="mb-6">
                     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">

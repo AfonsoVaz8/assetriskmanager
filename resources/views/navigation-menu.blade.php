@@ -132,6 +132,15 @@
                                 {{ __('Controls') }}
                             </x-dropdown-link>
                             @if(Auth::user()->role == \App\Enums\UserRole::SECURITY_OFFICER)
+                                <x-dropdown-link :href="route('incidents.index')">
+                                    {{ __('Incidents') }}
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('integrations.index')">
+                                    {{ __('Integrations') }}
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('attack-surface-scopes.index')">
+                                    {{ __('Attack Surface') }}
+                                </x-dropdown-link>
                                 <x-dropdown-link :href="route('import')">
                                     {{ __('Import Files') }}
                                 </x-dropdown-link>

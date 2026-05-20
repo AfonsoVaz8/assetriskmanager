@@ -1,0 +1,20 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __("Edit Integration") }}</h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <x-validation-errors class="mb-4" />
+                    <form method="POST" action="{{ route('integrations.update', $integration) }}">
+                        @csrf
+                        @method('PUT')
+                        @include('integrations._form', ['submitLabel' => __('Update')])
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>

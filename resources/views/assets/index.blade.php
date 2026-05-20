@@ -106,12 +106,11 @@
                                            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 mr-1 mb-1 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 inline-block">
                                             {{__("Manage")}}
                                         </a>
-                                    @else
-                                        <a href="{{route("assets.show",$asset->id)}}"
-                                           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 mr-1 mb-1 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 inline-block">
-                                            {{__("View")}}
-                                        </a>
                                     @endcan
+                                    <a href="{{route("assets.discovered-host-details", $asset->id)}}"
+                                       class="text-white bg-slate-700 hover:bg-slate-800 focus:ring-4 focus:ring-slate-300 font-medium rounded-lg text-sm px-3 py-2 mr-1 mb-1 dark:bg-slate-600 dark:hover:bg-slate-700 focus:outline-none dark:focus:ring-slate-800 inline-block">
+                                        {{__("View")}}
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach

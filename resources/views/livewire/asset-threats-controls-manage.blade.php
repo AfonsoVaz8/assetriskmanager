@@ -58,8 +58,20 @@
                 <tbody>
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 text-gray-900">
                     <td class="px-3 py-4">{{$threat->threat->id}}</td>
-                    <td class="px-3 py-4">{{$threat->threat->name}}</td>
-                    <td class="px-3 py-4">{{$threat->threat->description}}</td>
+                    <td class="px-3 py-4">
+                        <div class="font-medium">{{$threat->threat->name}}</div>
+                        @if($threat->auto_generated)
+                            <div class="mt-1">
+                                <span class="inline-flex px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800">{{ __("Auto-generated from Shodan") }}</span>
+                            </div>
+                        @endif
+                    </td>
+                    <td class="px-3 py-4">
+                        <div>{{$threat->threat->description}}</div>
+                        @if($threat->contextSummary())
+                            <div class="mt-1 text-xs text-slate-500">{{$threat->contextSummary()}}</div>
+                        @endif
+                    </td>
                     <td style="background-color: {{$threat->color($threat->probability)}}"
                         class="px-3 py-4">{{$threat->probability}}</td>
                     <td style="background-color: {{$threat->color($threat->availability_impact)}}"
