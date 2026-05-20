@@ -63,11 +63,11 @@ class GLPI:
         h["Content-Type"] = "application/json"
         return h
 
-    def endpoint(self):
-        return self.base + "/v2/Assets/Custom/armdesktop"
+    def endpoint(self, itemtype):
+        return f"{self.base}/v2/Assets/Custom/{itemtype}"
 
-    def find(self, arm_id):
-        r = self.session.get(self.endpoint(), headers=self.headers())
+    def find(self, itemtype, arm_id):
+        r = self.session.get(self.endpoint(itemtype), headers=self.headers())
         r.raise_for_status()
 
         items = r.json()
@@ -79,15 +79,19 @@ class GLPI:
 
         return None
 
-    def create(self, payload):
-        r = self.session.post(self.endpoint(), headers=self.headers_json(), json=payload)
+    def create(self, itemtype, payload):
+        r = self.session.post(
+            self.endpoint(itemtype),
+            headers=self.headers_json(),
+            json=payload
+        )
         if r.status_code >= 400:
             print("[CREATE ERROR]", r.status_code, r.text)
         r.raise_for_status()
 
-    def update(self, asset_id, payload):
+    def update(self, itemtype, asset_id, payload):
         r = self.session.patch(
-            self.endpoint() + "/" + str(asset_id),
+            self.endpoint(itemtype) + "/" + str(asset_id),
             headers=self.headers_json(),
             json=payload
         )
@@ -95,15 +99,15 @@ class GLPI:
             print("[UPDATE ERROR]", r.status_code, r.text)
         r.raise_for_status()
 
-    def upsert(self, payload):
+    def upsert(self, itemtype, payload):
         arm_id = payload["custom_fields"]["arm_id"]
 
-        existing = self.find(arm_id)
+        existing = self.find(itemtype, arm_id)
 
         if existing:
-            self.update(existing, payload)
+            self.update(itemtype, existing, payload)
         else:
-            self.create(payload)
+            self.create(itemtype, payload)
 
 
 def fetch_assets():
@@ -186,7 +190,7 @@ def main():
 
         try:
             payload = build_payload(glpi, asset)
-            glpi.upsert(payload)
+            glpi.upsert(itemtype, payload)
             ok += 1
         except Exception as e:
             err += 1
