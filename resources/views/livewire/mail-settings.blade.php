@@ -9,30 +9,30 @@
         @endif
 
         <form wire:submit="saveSettings" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <div class="md:col-span-2">
-                <label class="block mb-2 text-sm font-medium text-gray-900">{{ __('Sender Name (From Name)') }}</label>
-                <input type="text" wire:model="mail_from_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Ex: Risk Management" required>
-            </div>
 
             <div class="md:col-span-2">
-                <label class="block mb-2 text-sm font-medium text-gray-900">{{ __('Sender E-mail (From Address)') }}</label>
-                <input type="email" wire:model="mail_from_address" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                <label for="mail_from_name" class="block mb-2 text-sm font-medium text-gray-900">{{ __('Sender Name (From Name)') }}</label>
+                <input type="text" id="mail_from_name" wire:model="mail_from_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Ex: Risk Management" required>
+            </div>
+
+            <div class="md:col-span-2">
+                <label for="mail_from_address" class="block mb-2 text-sm font-medium text-gray-900">{{ __('Sender E-mail (From Address)') }}</label>
+                <input type="email" id="mail_from_address" wire:model="mail_from_address" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
             </div>
 
             <div>
-                <label class="block mb-2 text-sm font-medium text-gray-900">{{ __('SMTP Server (Host)') }}</label>
-                <input type="text" wire:model="mail_host" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="smtp.gmail.com" required>
+                <label for="mail_host" class="block mb-2 text-sm font-medium text-gray-900">{{ __('SMTP Server (Host)') }}</label>
+                <input type="text" id="mail_host" wire:model="mail_host" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="smtp.gmail.com" required>
             </div>
 
             <div>
-                <label class="block mb-2 text-sm font-medium text-gray-900">{{ __('Port') }}</label>
-                <input type="number" wire:model="mail_port" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="465" required>
+                <label for="mail_port" class="block mb-2 text-sm font-medium text-gray-900">{{ __('Port') }}</label>
+                <input type="number" id="mail_port" wire:model="mail_port" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="465" required>
             </div>
 
             <div>
-                <label class="block mb-2 text-sm font-medium text-gray-900">{{ __('Encryption') }}</label>
-                <select wire:model="mail_encryption" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                <label for="mail_encryption" class="block mb-2 text-sm font-medium text-gray-900">{{ __('Encryption') }}</label>
+                <select id="mail_encryption" wire:model="mail_encryption" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                     <option value="none">{{ __('None') }}</option>
                     <option value="tls">TLS</option>
                     <option value="ssl">SSL</option>
@@ -49,13 +49,13 @@
 
             @if($requires_auth)
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-gray-900">{{ __('E-mail / Username') }}</label>
-                    <input type="email" wire:model="mail_username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                    <label for="mail_username" class="block mb-2 text-sm font-medium text-gray-900">{{ __('E-mail / Username') }}</label>
+                    <input type="email" id="mail_username" wire:model="mail_username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm font-medium text-gray-900">{{ __('Password (App Password)') }}</label>
-                    <input type="password" wire:model="mail_password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                    <label for="mail_password" class="block mb-2 text-sm font-medium text-gray-900">{{ __('Password (App Password)') }}</label>
+                    <input type="password" id="mail_password" wire:model="mail_password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                     <p class="text-xs text-gray-500 mt-1">{{ __('Your password will be securely encrypted in the database.') }}</p>
                 </div>
             @endif
@@ -69,14 +69,14 @@
         </form>
     </div>
 
-    <!-- Zona de Teste de E-mail -->
     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
         <h3 class="text-lg font-bold mb-4 text-gray-800">{{ __('Test Connection') }}</h3>
         <p class="text-sm text-gray-600 mb-4">{{ __('Save your settings first. Then, enter an email address below to test if the system can send emails properly.') }}</p>
-        
+
         <form wire:submit="sendTestEmail" class="flex gap-4">
             <div class="flex-grow">
-                <input type="email" wire:model="test_email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="{{ __('Email address to receive test') }}" required>
+                <label for="test_email" class="sr-only">{{ __('Email address to receive test') }}</label>
+                <input type="email" id="test_email" wire:model="test_email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="{{ __('Email address to receive test') }}" required>
             </div>
             <button type="submit" wire:loading.attr="disabled" wire:target="sendTestEmail" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5">
                 <span wire:loading.remove wire:target="sendTestEmail">{{ __('Send Test Email') }}</span>

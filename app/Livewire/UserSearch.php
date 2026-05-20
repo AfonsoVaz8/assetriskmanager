@@ -2,61 +2,44 @@
 
 namespace App\Livewire;
 
-use App\Http\Controllers\UserController;
-use App\Models\User;
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
+use App\Models\User;
 
 class UserSearch extends Component
 {
-    use AuthorizesRequests;
-
-    public $users;
     public $searchTerm = '';
-    public $selectedManagerId;
+    public $users = [];
     public $showDropdown = false;
 
-    public function mount($selectedManagerId = null)
-    {
-        $this->selectedManagerId = $selectedManagerId;
-        $this->users = collect();
-
-        if ($this->selectedManagerId) {
-            $user = User::find($this->selectedManagerId);
-            if ($user) {
-                // Formata o nome para ficar bonito no input
-                $this->searchTerm = $user->name . ' (' . $user->email . ')';
-            }
-        }
-    }
+    public $selectedManagerId = null;
 
     public function updatedSearchTerm()
     {
-        $this->selectedManagerId = null;
-        $this->showDropdown = true;
-
         if (strlen($this->searchTerm) >= 2) {
-            $this->users = UserController::filterUser($this->searchTerm)->take(10)->get();
+            $this->users = User::where('name', 'like', '%' . $this->searchTerm . '%')
+                ->orWhere('email', 'like', '%' . $this->searchTerm . '%')
+                ->get();
+            $this->showDropdown = true;
         } else {
-            $this->users = collect();
+            $this->users = [];
             $this->showDropdown = false;
         }
     }
 
-    public function selectUser($userId, $userName, $userEmail)
-    {
-        $this->selectedManagerId = $userId;
-        $this->searchTerm = $userName . ' (' . $userEmail . ')';
+    public function selectUser($id, $name, $email) {
+        $this->selectedManagerId = $id;
+        $this->searchTerm = $name . ' (' . $email . ')';
         $this->showDropdown = false;
-        $this->users = collect();
+    }
 
-        $this->dispatch('managerSelected', $this->selectedManagerId);
+    public function clearSelection() {
+        $this->selectedManagerId = null;
+        $this->searchTerm = '';
+        $this->users = collect();
     }
 
     public function render()
     {
-        $this->authorize('viewAny', User::class);
         return view('livewire.user-search');
     }
 }

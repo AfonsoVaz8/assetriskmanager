@@ -256,7 +256,7 @@
                 </td>
                 <td>
                     <div class="kpi-val">{{ $stats['Total'] ?? 0 }}</div>
-                    <div class="kpi-label">{{ __('cia_incidents') }}</div>
+                    <div class="kpi-label">{{ __('incidents') }}</div>
                     <div class="kpi-delta" style="color: {{ ($stats['Total'] ?? 0) > 0 ? '#9B1D1D' : '#6B7280' }};">
                         {{ ($stats['Total'] ?? 0) > 0 ? __('registered_in_year') : __('none_reported') }}
                     </div>
@@ -352,8 +352,31 @@
         <div class="callout callout-gold">{{ __('not_applicable') }}</div>
 
         <p style="font-weight:bold; font-size:12px; color:#1A3A5C; margin-top:15px; margin-bottom: 5px;">{{ __('incident_duration') }}</p>
-        <div class="callout callout-gold">{{ __('not_applicable') }}</div>
 
+        @if(($stats['Total'] ?? 0) == 0)
+            <div class="callout callout-gold">{{ __('not_applicable') }} (Nenhum incidente reportado no período).</div>
+        @else
+            <div class="callout callout-gold" style="padding-left: 35px;">
+                <ul style="margin: 0; padding-left: 15px; list-style-type: disc;">
+                    @foreach($quarters as $q => $months)
+                        @if(isset($groupedIncidents[$q]) && count($groupedIncidents[$q]) > 0)
+                            @foreach($groupedIncidents[$q] as $incident)
+                                <li style="margin-bottom: 6px;">
+                                    <strong>{{ $incident['name'] ?? 'Incidente sem título' }}</strong><br>
+                                    <span style="color: #4B5563;">
+                                        @if(isset($incident['duration_hours']) && $incident['duration_hours'] !== null)
+                                            Tempo de resolução: <strong>{{ round($incident['duration_days']) }} dias</strong> ({{ round($incident['duration_hours']) }} horas no total).
+                                        @else
+                                            <span style="color:#9B1D1D;">Incidente ainda em aberto (sem data de fecho registada no GLPI).</span>
+                                        @endif
+                                    </span>
+                                </li>
+                            @endforeach
+                        @endif
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <p style="font-weight:bold; font-size:12px; color:#1A3A5C; margin-top:15px; margin-bottom: 5px;">{{ __('geographic_distribution') }}</p>
         <div class="callout callout-gold">{{ __('local_impact') }}</div>
     </div>

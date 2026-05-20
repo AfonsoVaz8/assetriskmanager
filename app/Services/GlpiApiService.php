@@ -66,6 +66,29 @@ class GlpiApiService
 
             return $tickets->filter(function ($ticket) use ($year) {
                 return \Carbon\Carbon::parse($ticket['date'])->year == $year;
+            })->map(function ($ticket) {
+                $openDate = \Carbon\Carbon::parse($ticket['date']);
+
+                $closeDateStr = $ticket['closedate'] ?? $ticket['solvedate'] ?? null;
+                $durationInHours = null;
+                $durationInDays = null;
+
+                if ($closeDateStr) {
+                    $closeDate = \Carbon\Carbon::parse($closeDateStr);
+                    $durationInHours = $openDate->diffInHours($closeDate);
+                    $durationInDays = $openDate->diffInDays($closeDate);
+                }
+
+                return [
+                    'id'             => $ticket['id'],
+                    'name'           => $ticket['name'],
+                    'date'           => $ticket['date'],
+                    'closedate'      => $closeDateStr,
+                    'status'         => $ticket['status'] ?? null,
+                    'duration_hours' => $durationInHours,
+                    'duration_days'  => $durationInDays,
+                    'raw'            => $ticket
+                ];
             });
         }
 
