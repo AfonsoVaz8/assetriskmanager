@@ -42,7 +42,8 @@ class AppServiceProvider extends ServiceProvider
                 if (!empty($settings)) {
                     Config::set('mail.mailers.smtp.host', $settings['mail_host'] ?? config('mail.mailers.smtp.host'));
                     Config::set('mail.mailers.smtp.port', $settings['mail_port'] ?? config('mail.mailers.smtp.port'));
-
+                    Config::set('mail.from.address', $settings['mail_from_address'] ?? config('mail.from.address'));
+                    Config::set('mail.from.name', $settings['mail_from_name'] ?? config('mail.from.name'));
                     $encryption = $settings['mail_encryption'] ?? config('mail.mailers.smtp.encryption');
                     Config::set('mail.mailers.smtp.encryption', $encryption === 'none' ? null : $encryption);
 
@@ -53,15 +54,12 @@ class AppServiceProvider extends ServiceProvider
                     } else {
                         Config::set('mail.mailers.smtp.password', null);
                     }
-        Asset::observe(AssetObserver::class);
+                    Asset::observe(AssetObserver::class);
+                }
+}
+            } catch (\Exception $e) {
+                \Log::error('Error loading mail settings: ' . $e->getMessage());
+            }
     }
 }
 
-                    Config::set('mail.from.address', $settings['mail_from_address'] ?? config('mail.from.address'));
-                    Config::set('mail.from.name', $settings['mail_from_name'] ?? config('mail.from.name'));
-                }
-            }
-        } catch (\Exception $e) {
-        }
-    }
-}

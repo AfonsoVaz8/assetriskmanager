@@ -289,11 +289,13 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th width="25">{{ __('period') }}</th>
-                    <th width="10%" style="text-align:center;">{{ __('incidents') }}</th>
-                    <th width="35%">{{ __('typology') }}</th>
-                    <th width="15%">{{ __('impact') }}</th>
-                    <th width="15%">{{ __('status') }}</th>
+                    <th width="12%">{{ __('period') }}</th>
+                    <th width="6%" style="text-align:center;">{{ __('incidents') }}</th>
+                    <th width="22%">{{ __('typology') }}</th>
+                    <th width="14%">Class. Informação</th>
+                    <th width="12%">Class. Risco</th>
+                    <th width="20%">Impacto CIA Breakdown</th>
+                    <th width="14%">{{ __('status') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -318,7 +320,18 @@
                                     <strong>{{ $incident['name'] ?? __('none') }}</strong><br>
                                     <span style="font-size: 9px; color:#6B7280;">{{ __('registered_at') }} {{ \Carbon\Carbon::parse($incident['date'])->format('d/m/Y') }}</span>
                                 </td>
-                                <td style="color:#9B1D1D; font-weight:bold;">{{ __('pending') }}</td>
+
+                                <td>{{ $incident['information_classification'] ?? '—' }}</td>
+
+                                <td>{{ $incident['risk_classification'] ?? '—' }}</td>
+
+                                <td style="font-size: 10px; font-family: monospace; line-height: 1.4;">
+                                    C: {{ $incident['confidentiality'] ?? 0 }} |
+                                    I: {{ $incident['integrity'] ?? 0 }} |
+                                    A: {{ $incident['availability'] ?? 0 }}<br>
+                                    <strong>Total: {{ $incident['total'] ?? 0 }}</strong>
+                                </td>
+
                                 <td><span class="status-badge-alert">{{ __('reported') }}</span></td>
                             </tr>
                         @endforeach
@@ -326,6 +339,8 @@
                         <tr>
                             <td style="font-family:monospace;">{{ $q }} · {{ $months }} {{ $year }}</td>
                             <td style="text-align:center; font-family:monospace;">0</td>
+                            <td style="color:#6B7280;">—</td>
+                            <td style="color:#6B7280;">—</td>
                             <td style="color:#6B7280;">—</td>
                             <td style="color:#6B7280;">—</td>
                             <td><span class="status-badge">{{ __('no_occurrences') }}</span></td>

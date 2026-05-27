@@ -40,16 +40,40 @@ class ReportController extends Controller
 
             if (str_starts_with($export, "cncs_save")) {
                 $year = Carbon::now()->year;
-                // Sem locale no nome do ficheiro
                 $fileName = 'cncs_report_' . $year . '_' . time() . '.pdf';
                 $filePath = 'reports/' . $fileName;
 
-                $assets = Asset::with(['threats.threat', 'threats.controls'])->get();
+                $assets = Asset::with(['threats.threat', 'threats.controls', 'informationClassification', 'riskClassification'])->get();
 
-                $glpiService = new GlpiApiService();
-                $incidents = $glpiService->getIncidentsByYear($year);
+                $rawIncidents = $glpiService->getIncidentsByYear($year);
 
-                $quarterlyIncidents = $incidents->groupBy(function ($incident) {
+                $enrichedIncidents = $rawIncidents->map(function ($incident) use ($assets) {
+                    $matchingAsset = $assets->first(function ($asset) use ($incident) {
+                        return str_contains(strtolower($incident['name']), strtolower($asset->name))
+                            || (isset($incident['raw']['items_id']) && $incident['raw']['itemtype'] === 'Computer');
+                    });
+
+                    if ($matchingAsset) {
+                        $incident['information_classification'] = $matchingAsset->informationClassification?->name ?? 'Não Classificado';
+                        $incident['risk_classification'] = $matchingAsset->riskClassification?->name ?? 'Sem Risco';
+
+                        $incident['confidentiality'] = $matchingAsset->confidentiality_impact ?? 1;
+                        $incident['integrity']     = $matchingAsset->integrity_impact ?? 1;
+                        $incident['availability']  = $matchingAsset->availability_impact ?? 1;
+                    } else {
+                        $incident['information_classification'] = 'N/A';
+                        $incident['risk_classification'] = 'N/A';
+                        $incident['confidentiality'] = 0;
+                        $incident['integrity']     = 0;
+                        $incident['availability']  = 0;
+                    }
+
+                    $incident['total'] = $incident['confidentiality'] + $incident['integrity'] + $incident['availability'];
+
+                    return $incident;
+                });
+
+                $quarterlyIncidents = $enrichedIncidents->groupBy(function ($incident) {
                     $quarter = Carbon::parse($incident['date'])->quarter;
                     return 'Q' . $quarter;
                 });
@@ -59,7 +83,7 @@ class ReportController extends Controller
                     'Q2' => $quarterlyIncidents->get('Q2', collect([]))->count(),
                     'Q3' => $quarterlyIncidents->get('Q3', collect([]))->count(),
                     'Q4' => $quarterlyIncidents->get('Q4', collect([]))->count(),
-                    'Total' => $incidents->count(),
+                    'Total' => $enrichedIncidents->count(),
                 ];
 
                 $pdf = Pdf::loadView('reports.cncs_document', [
@@ -105,7 +129,7 @@ class ReportController extends Controller
 
             abort(ResponseAlias::HTTP_BAD_REQUEST);
         }
-       else {
+        else {
             $nodes_array = array();
             $edges_array = array();
             foreach (Asset::all() as $asset) {
