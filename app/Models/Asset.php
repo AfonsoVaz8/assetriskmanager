@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use App\Services\RabbitMQPublisher;
 
 class Asset extends Model
 {
@@ -163,6 +165,18 @@ class Asset extends Model
     {
         return $this->belongsTo(RiskClassification::class);
     }
+    protected static function booted()
+    {
+        static::updated(function ($asset) {
+
+            Log::channel('application')->info('🔥 UPDATED EVENT FIRED', [
+                'asset_id' => $asset->id
+            ]);
+
+            (new RabbitMQPublisher())->publishAssetEvent($asset->id, 'updated');
+        });
+    }
+
     public function logs(): HasMany
     {
         return $this->hasMany(AssetLog::class);

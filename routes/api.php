@@ -28,6 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/assets/vulnerabilities', [ReportApiController::class, 'assetVulnerabilities']);
 
+    Route::get('/assets/{id}', [AssetApiController::class, 'show']);
+
     Route::get('/assets', [AssetApiController::class, 'index']);
 
 });

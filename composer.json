@@ -17,6 +17,7 @@
     "laravel/tinker": "^v2.10.0",
     "livewire/livewire": "^v3.5.12",
     "maatwebsite/excel": "^3.1.60",
+    "php-amqplib/php-amqplib": "^3.0",
     "ext-ldap": "*"
   },
   "require-dev": {
@@ -64,7 +65,9 @@
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
-    "sort-packages": true
+    "sort-packages": true,
+    "platform": {
+    }
   },
   "minimum-stability": "dev",
   "prefer-stable": true
