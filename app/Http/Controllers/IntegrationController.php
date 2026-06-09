@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\ThreatMonitoring\Enums\IntegrationProvider;
+use App\Domain\ThreatMonitoring\Services\IntegrationSyncStateService;
 use App\Http\Requests\StoreIntegrationRequest;
 use App\Http\Requests\UpdateIntegrationRequest;
 use App\Jobs\SyncAssetFromShodan;
@@ -74,12 +75,84 @@ class IntegrationController extends Controller
     public function show(Integration $integration): Application|Factory|View
     {
         $recentAssetReports = collect();
+        $syncProgress = null;
+        $viewState = [
+            'isGraph' => $integration->provider === IntegrationProvider::MICROSOFT_GRAPH->value,
+            'isShodan' => $integration->provider === IntegrationProvider::SHODAN->value,
+            'isGenericIp' => $integration->provider === IntegrationProvider::GENERIC_IP_INTELLIGENCE->value,
+            'credentials' => $integration->safeCredentials(),
+            'syncStatus' => 'idle',
+            'syncStatusClass' => 'bg-slate-100 text-slate-700',
+            'analysisPolicy' => data_get($integration->settings, 'analysis_policy', []),
+        ];
 
-        if ($integration->provider === IntegrationProvider::MICROSOFT_GRAPH->value) {
+        if ($viewState['isGraph']) {
             $integration->load([
                 'threatEvents' => fn ($query) => $query->latest('occurred_at')->limit(10),
                 'incidents' => fn ($query) => $query->latest('last_seen_at')->limit(10),
             ]);
+
+            $totalThreatEvents = $integration->threatEvents()->count();
+            $lastSyncStartedAt = data_get($integration->sync_state, 'last_sync_started_at');
+            $pendingAnalysis = $integration->threatEvents()
+                ->pendingAnalysis()
+                ->when($lastSyncStartedAt, function ($query, $lastSyncStartedAt) {
+                    $query->where(function ($builder) use ($lastSyncStartedAt) {
+                        $builder->where('updated_at', '>=', $lastSyncStartedAt)
+                            ->orWhere('created_at', '>=', $lastSyncStartedAt);
+                    });
+                })
+                ->count();
+            $pendingBacklog = $integration->threatEvents()
+                ->pendingAnalysis()
+                ->when($lastSyncStartedAt, function ($query, $lastSyncStartedAt) {
+                    $query->where(function ($builder) use ($lastSyncStartedAt) {
+                        $builder->where('updated_at', '<', $lastSyncStartedAt)
+                            ->where('created_at', '<', $lastSyncStartedAt);
+                    });
+                }, fn ($query) => $query->whereRaw('1 = 0'))
+                ->count();
+            $processedThreatEvents = max(0, $totalThreatEvents - $pendingAnalysis);
+            $incidentCount = $integration->incidents()->count();
+            $openIncidentCount = $integration->incidents()
+                ->whereIn('status', ['open', 'in_progress'])
+                ->count();
+            $currentStatus = data_get($integration->sync_state, 'monitoring_status', 'idle');
+
+            if ($integration->last_error) {
+                $currentStatus = 'error';
+            } elseif ($pendingAnalysis > 0 && !in_array($currentStatus, ['queued', 'syncing'], true)) {
+                $currentStatus = 'processing';
+            } elseif ($integration->last_synced_at && $pendingAnalysis === 0 && !in_array($currentStatus, ['queued', 'syncing'], true)) {
+                $currentStatus = 'completed';
+            }
+
+            $syncProgress = [
+                'status' => $currentStatus,
+                'last_requested_at' => data_get($integration->sync_state, 'last_requested_at'),
+                'last_sync_started_at' => data_get($integration->sync_state, 'last_sync_started_at'),
+                'last_sync_finished_at' => data_get($integration->sync_state, 'last_sync_finished_at'),
+                'last_processing_completed_at' => data_get($integration->sync_state, 'last_processing_completed_at'),
+                'last_sync_sign_in_count' => (int) data_get($integration->sync_state, 'last_sync_sign_in_count', 0),
+                'last_sync_risk_detection_count' => (int) data_get($integration->sync_state, 'last_sync_risk_detection_count', 0),
+                'last_sync_collected_count' => (int) data_get($integration->sync_state, 'last_sync_collected_count', 0),
+                'total_threat_events' => $totalThreatEvents,
+                'processed_threat_events' => $processedThreatEvents,
+                'pending_analysis' => $pendingAnalysis,
+                'pending_backlog' => $pendingBacklog,
+                'incident_count' => $incidentCount,
+                'open_incident_count' => $openIncidentCount,
+            ];
+
+            $viewState['syncStatus'] = $currentStatus;
+            $viewState['syncStatusClass'] = match ($currentStatus) {
+                'queued' => 'bg-amber-100 text-amber-800',
+                'syncing' => 'bg-blue-100 text-blue-800',
+                'processing' => 'bg-indigo-100 text-indigo-800',
+                'completed' => 'bg-emerald-100 text-emerald-800',
+                'error' => 'bg-red-100 text-red-800',
+                default => 'bg-slate-100 text-slate-700',
+            };
         } elseif ($integration->provider === IntegrationProvider::SHODAN->value) {
             $assetIds = app(ShodanIntegrationResolver::class)
                 ->eligibleAssetsQuery($integration)
@@ -93,9 +166,11 @@ class IntegrationController extends Controller
                 ->get();
         }
 
-        return view('integrations.show', [
+        return view('integrations.details', [
             'integration' => $integration,
             'recentAssetReports' => $recentAssetReports,
+            'syncProgress' => $syncProgress,
+            'viewState' => $viewState,
         ]);
     }
 
@@ -190,6 +265,7 @@ class IntegrationController extends Controller
                 ->with('status', __('This integration is used by attack surface enrichment and does not have a direct sync action.'));
         }
 
+        app(IntegrationSyncStateService::class)->markThreatSyncQueued($integration);
         SyncThreatIntegration::dispatch($integration->id);
 
         return redirect()->route('integrations.show', $integration)->with('status', __('Integration sync dispatched'));
@@ -363,6 +439,26 @@ class IntegrationController extends Controller
             'detect_external_signins' => $request->boolean('settings.detect_external_signins', true),
             'detect_unusual_countries' => $request->boolean('settings.detect_unusual_countries', true),
             'notify_high_severity' => $request->boolean('settings.notify_high_severity', true),
+            'analysis_policy' => array_filter([
+                'severity_high_threshold' => $request->input('settings.analysis_policy.severity_high_threshold'),
+                'severity_medium_threshold' => $request->input('settings.analysis_policy.severity_medium_threshold'),
+                'successful_signin_points' => $request->input('settings.analysis_policy.successful_signin_points'),
+                'successful_external_signin_points' => $request->input('settings.analysis_policy.successful_external_signin_points'),
+                'ip_reputation_high_points' => $request->input('settings.analysis_policy.ip_reputation_high_points'),
+                'ip_reputation_nonzero_points' => $request->input('settings.analysis_policy.ip_reputation_nonzero_points'),
+                'unusual_country_points' => $request->input('settings.analysis_policy.unusual_country_points'),
+                'sensitive_application_points' => $request->input('settings.analysis_policy.sensitive_application_points'),
+                'single_factor_auth_points' => $request->input('settings.analysis_policy.single_factor_auth_points'),
+                'conditional_access_not_applied_points' => $request->input('settings.analysis_policy.conditional_access_not_applied_points'),
+                'missing_os_context_points' => $request->input('settings.analysis_policy.missing_os_context_points'),
+                'missing_browser_context_points' => $request->input('settings.analysis_policy.missing_browser_context_points'),
+                'failure_then_success_points' => $request->input('settings.analysis_policy.failure_then_success_points'),
+                'graph_high_risk_points' => $request->input('settings.analysis_policy.graph_high_risk_points'),
+                'graph_medium_risk_points' => $request->input('settings.analysis_policy.graph_medium_risk_points'),
+                'graph_low_risk_points' => $request->input('settings.analysis_policy.graph_low_risk_points'),
+                'account_at_risk_points' => $request->input('settings.analysis_policy.account_at_risk_points'),
+                'confirmed_compromise_points' => $request->input('settings.analysis_policy.confirmed_compromise_points'),
+            ], static fn ($value) => $value !== null && $value !== ''),
         ];
     }
 }

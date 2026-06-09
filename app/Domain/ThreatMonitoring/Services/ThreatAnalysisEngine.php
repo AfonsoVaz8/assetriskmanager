@@ -31,6 +31,27 @@ class ThreatAnalysisEngine
         'Microsoft Intune',
     ];
 
+    private const DEFAULT_ANALYSIS_POLICY = [
+        'severity_high_threshold' => 60,
+        'severity_medium_threshold' => 30,
+        'successful_signin_points' => 5,
+        'successful_external_signin_points' => 10,
+        'ip_reputation_high_points' => 50,
+        'ip_reputation_nonzero_points' => 25,
+        'unusual_country_points' => 15,
+        'sensitive_application_points' => 15,
+        'single_factor_auth_points' => 20,
+        'conditional_access_not_applied_points' => 15,
+        'missing_os_context_points' => 5,
+        'missing_browser_context_points' => 5,
+        'failure_then_success_points' => 25,
+        'graph_high_risk_points' => 70,
+        'graph_medium_risk_points' => 40,
+        'graph_low_risk_points' => 15,
+        'account_at_risk_points' => 20,
+        'confirmed_compromise_points' => 25,
+    ];
+
     public function __construct(
         private readonly IpReputationClient $ipReputationClient,
         private readonly RelatedSignInResolver $relatedSignInResolver,
@@ -53,7 +74,7 @@ class ThreatAnalysisEngine
         $normalized = $event->normalized_payload ?? [];
 
         if ($isSuccess) {
-            $this->addFinding($findings, $score, 'successful_signin', 'Successful sign-in detected', 5);
+            $this->addFinding($findings, $score, 'successful_signin', 'Successful sign-in detected', $this->policyValue($event, 'successful_signin_points'));
         }
 
         if ($event->ip_address && filter_var($event->ip_address, FILTER_VALIDATE_IP)) {
@@ -63,7 +84,7 @@ class ThreatAnalysisEngine
                     $score,
                     'successful_external_signin',
                     sprintf('Successful sign-in from IP %s outside the configured trusted networks', $event->ip_address),
-                    10,
+                    $this->policyValue($event, 'successful_external_signin_points'),
                     [
                         'ip_address' => $event->ip_address,
                         'location' => $event->location_label ?? 'unknown',
@@ -92,7 +113,7 @@ class ThreatAnalysisEngine
                             $score,
                             'ip_reputation_high',
                             sprintf('IP %s has high AbuseIPDB score (%d%%), country=%s, isp=%s', $event->ip_address, $abuseScore, $country, $isp),
-                            50,
+                            $this->policyValue($event, 'ip_reputation_high_points'),
                             [
                                 'ip_address' => $event->ip_address,
                                 'abuse_confidence_score' => $abuseScore,
@@ -106,7 +127,7 @@ class ThreatAnalysisEngine
                             $score,
                             'ip_reputation_nonzero',
                             sprintf('IP %s has AbuseIPDB score (%d%%), country=%s, isp=%s', $event->ip_address, $abuseScore, $country, $isp),
-                            25,
+                            $this->policyValue($event, 'ip_reputation_nonzero_points'),
                             [
                                 'ip_address' => $event->ip_address,
                                 'abuse_confidence_score' => $abuseScore,
@@ -130,7 +151,7 @@ class ThreatAnalysisEngine
                 $score,
                 'unusual_country',
                 sprintf('Successful sign-in from country outside trusted set: %s (%s)', $event->country_code, $event->location_label ?? 'unknown'),
-                15,
+                $this->policyValue($event, 'unusual_country_points'),
                 [
                     'country_code' => $event->country_code,
                     'location' => $event->location_label ?? 'unknown',
@@ -145,7 +166,7 @@ class ThreatAnalysisEngine
                 $score,
                 'sensitive_application',
                 sprintf('Sensitive application used: %s', $event->application_name),
-                15
+                $this->policyValue($event, 'sensitive_application_points')
             );
         }
 
@@ -155,7 +176,7 @@ class ThreatAnalysisEngine
                 $score,
                 'single_factor_auth',
                 'Successful sign-in used single-factor authentication',
-                20
+                $this->policyValue($event, 'single_factor_auth_points')
             );
         }
 
@@ -165,16 +186,16 @@ class ThreatAnalysisEngine
                 $score,
                 'conditional_access_not_applied',
                 'Conditional Access was not applied on successful sign-in',
-                15
+                $this->policyValue($event, 'conditional_access_not_applied_points')
             );
         }
 
         if ($isSuccess && blank($normalized['operating_system'] ?? null)) {
-            $this->addFinding($findings, $score, 'missing_os_context', 'Operating system field is empty on successful sign-in', 5);
+            $this->addFinding($findings, $score, 'missing_os_context', 'Operating system field is empty on successful sign-in', $this->policyValue($event, 'missing_os_context_points'));
         }
 
         if ($isSuccess && blank($normalized['browser'] ?? null)) {
-            $this->addFinding($findings, $score, 'missing_browser_context', 'Browser field is empty on successful sign-in', 5);
+            $this->addFinding($findings, $score, 'missing_browser_context', 'Browser field is empty on successful sign-in', $this->policyValue($event, 'missing_browser_context_points'));
         }
 
         $previousFailures = $this->previousFailures($event);
@@ -184,7 +205,7 @@ class ThreatAnalysisEngine
                 $score,
                 'failure_then_success',
                 sprintf('%d failed sign-in(s) detected before successful sign-in within %d minutes', $previousFailures->count(), self::FAILURE_LOOKBACK_MINUTES),
-                25,
+                $this->policyValue($event, 'failure_then_success_points'),
                 [
                     'failure_count' => $previousFailures->count(),
                     'lookback_minutes' => self::FAILURE_LOOKBACK_MINUTES,
@@ -199,7 +220,7 @@ class ThreatAnalysisEngine
         }
 
         return new ThreatAssessmentResult(
-            severity: $this->classifySeverity($score),
+            severity: $this->classifySeverity($event, $score),
             confidence: $this->classifyConfidence($findings),
             score: $score,
             findings: $findings,
@@ -223,7 +244,7 @@ class ThreatAnalysisEngine
                 $score,
                 'graph_high_risk',
                 $this->graphRiskDescription('high', $event),
-                70,
+                $this->policyValue($event, 'graph_high_risk_points'),
                 [
                     'risk_level' => $event->risk_level,
                     'risk_state' => $event->risk_state,
@@ -244,7 +265,7 @@ class ThreatAnalysisEngine
                 $score,
                 'graph_medium_risk',
                 $this->graphRiskDescription('medium', $event),
-                40,
+                $this->policyValue($event, 'graph_medium_risk_points'),
                 [
                     'risk_level' => $event->risk_level,
                     'risk_state' => $event->risk_state,
@@ -265,7 +286,7 @@ class ThreatAnalysisEngine
                 $score,
                 'graph_low_risk',
                 $this->graphRiskDescription('low', $event),
-                15,
+                $this->policyValue($event, 'graph_low_risk_points'),
                 [
                     'risk_level' => $event->risk_level,
                     'risk_state' => $event->risk_state,
@@ -306,7 +327,7 @@ class ThreatAnalysisEngine
                 $score,
                 'account_at_risk',
                 'Identity remains in atRisk state',
-                20,
+                $this->policyValue($event, 'account_at_risk_points'),
                 [
                     'risk_state' => $event->risk_state,
                     'principal' => $event->principal_display ?: $event->principal,
@@ -320,7 +341,7 @@ class ThreatAnalysisEngine
                 $score,
                 'confirmed_compromise_signal',
                 'Risk details indicate likely account compromise',
-                25,
+                $this->policyValue($event, 'confirmed_compromise_points'),
                 [
                     'risk_detail' => $event->risk_detail,
                     'principal' => $event->principal_display ?: $event->principal,
@@ -329,21 +350,35 @@ class ThreatAnalysisEngine
         }
 
         return new ThreatAssessmentResult(
-            severity: $this->classifySeverity($score),
+            severity: $this->classifySeverity($event, $score),
             confidence: $this->classifyConfidence($findings),
             score: $score,
             findings: $findings,
         );
     }
 
-    private function classifySeverity(int $score): ThreatSeverity
+    private function classifySeverity(ThreatEvent $event, int $score): ThreatSeverity
     {
+        $highThreshold = $this->policyValue($event, 'severity_high_threshold');
+        $mediumThreshold = $this->policyValue($event, 'severity_medium_threshold');
+
         return match (true) {
-            $score >= 60 => ThreatSeverity::HIGH,
-            $score >= 30 => ThreatSeverity::MEDIUM,
+            $score >= $highThreshold => ThreatSeverity::HIGH,
+            $score >= $mediumThreshold => ThreatSeverity::MEDIUM,
             $score >= 1 => ThreatSeverity::LOW,
             default => ThreatSeverity::INFORMATIONAL,
         };
+    }
+
+    private function policyValue(ThreatEvent $event, string $key): int
+    {
+        $value = data_get($event->integration?->settings, "analysis_policy.{$key}");
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return self::DEFAULT_ANALYSIS_POLICY[$key];
     }
 
     private function classifyConfidence(array $findings): ThreatConfidence

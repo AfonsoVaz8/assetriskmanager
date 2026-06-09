@@ -10,6 +10,7 @@ use App\Jobs\ThreatMonitoring\AnalyzeThreatEvent;
 use App\Models\Integration;
 use App\Models\ThreatEvent;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -22,6 +23,7 @@ class MicrosoftGraphProvider implements ThreatIntegrationProvider
         private readonly MicrosoftGraphClient $client,
         private readonly GraphSignInNormalizer $signInNormalizer,
         private readonly GraphRiskDetectionNormalizer $riskDetectionNormalizer,
+        private readonly IntegrationSyncStateService $integrationSyncStateService,
     ) {
     }
 
@@ -37,36 +39,50 @@ class MicrosoftGraphProvider implements ThreatIntegrationProvider
         $riskDetectionsCursor = $syncState['risk_detections_last_seen_at'] ?? null;
 
         try {
-            $signInsLastSeenAt = $this->syncStream(
+            $this->integrationSyncStateService->markThreatSyncStarted($integration);
+
+            $signInsResult = $this->syncStream(
                 integration: $integration,
                 resource: 'auditLogs/signIns',
                 query: $this->buildSignInQuery($signInsCursor),
                 normalizer: fn (array $payload) => $this->signInNormalizer->normalize($payload),
             );
 
-            $signInsCursor = $signInsLastSeenAt?->toIso8601String() ?? $signInsCursor;
+            $signInsCursor = $signInsResult['latest_seen_at']?->toIso8601String() ?? $signInsCursor;
 
             $this->persistSyncState($integration, $signInsCursor, $riskDetectionsCursor);
 
-            $riskDetectionsCursor = $this->syncRiskDetections($integration, $riskDetectionsCursor);
+            $riskDetectionResult = $this->syncRiskDetections($integration, $riskDetectionsCursor);
+            $riskDetectionsCursor = $riskDetectionResult['cursor'] ?? $riskDetectionsCursor;
 
             $integration->forceFill([
-                'sync_state' => $this->buildSyncState($signInsCursor, $riskDetectionsCursor),
+                'sync_state' => $this->buildSyncState(
+                    $integration->sync_state ?? [],
+                    $signInsCursor,
+                    $riskDetectionsCursor,
+                ),
                 'last_synced_at' => now(),
                 'last_error_at' => null,
                 'last_error' => null,
             ])->save();
+
+            $this->integrationSyncStateService->markThreatSyncFetched(
+                $integration->fresh(),
+                $signInsResult['count'] ?? 0,
+                $riskDetectionResult['count'] ?? 0,
+                $signInsCursor,
+                $riskDetectionsCursor,
+            );
+
+            $this->dispatchPendingAnalysis($integration->fresh());
         } catch (Throwable $exception) {
-            $integration->forceFill([
-                'last_error_at' => now(),
-                'last_error' => $exception->getMessage(),
-            ])->save();
+            $this->integrationSyncStateService->markThreatSyncError($integration, $exception->getMessage());
 
             throw $exception;
         }
     }
 
-    private function syncRiskDetections(Integration $integration, ?string $cursor): ?string
+    private function syncRiskDetections(Integration $integration, ?string $cursor): array
     {
         $existingCursor = $cursor ? Carbon::parse($cursor) : null;
         $latestSeenAt = $existingCursor;
@@ -114,15 +130,20 @@ class MicrosoftGraphProvider implements ThreatIntegrationProvider
             }
         }
 
-        return $cursor ?? $existingCursor?->toIso8601String();
+        return [
+            'cursor' => $cursor ?? $existingCursor?->toIso8601String(),
+            'count' => $processed,
+            'latest_seen_at' => $latestSeenAt,
+        ];
     }
 
     /**
      * @param callable(array): \App\Domain\ThreatMonitoring\DTO\NormalizedThreatEventData $normalizer
      */
-    private function syncStream(Integration $integration, string $resource, array $query, callable $normalizer): ?Carbon
+    private function syncStream(Integration $integration, string $resource, array $query, callable $normalizer): array
     {
         $latestSeenAt = null;
+        $processed = 0;
 
         foreach ($this->client->stream($integration, $resource, $query) as $record) {
             $normalized = $normalizer($record);
@@ -146,9 +167,14 @@ class MicrosoftGraphProvider implements ThreatIntegrationProvider
                     $latestSeenAt = $event->occurred_at;
                 }
             });
+
+            $processed++;
         }
 
-        return $latestSeenAt;
+        return [
+            'latest_seen_at' => $latestSeenAt,
+            'count' => $processed,
+        ];
     }
 
     private function buildSignInQuery(?string $cursor): array
@@ -176,15 +202,39 @@ class MicrosoftGraphProvider implements ThreatIntegrationProvider
     private function persistSyncState(Integration $integration, ?string $signInsCursor, ?string $riskDetectionsCursor): void
     {
         $integration->forceFill([
-            'sync_state' => $this->buildSyncState($signInsCursor, $riskDetectionsCursor),
+            'sync_state' => $this->buildSyncState(
+                $integration->sync_state ?? [],
+                $signInsCursor,
+                $riskDetectionsCursor,
+            ),
         ])->save();
     }
 
-    private function buildSyncState(?string $signInsCursor, ?string $riskDetectionsCursor): array
+    private function buildSyncState(array $existingState, ?string $signInsCursor, ?string $riskDetectionsCursor): array
     {
-        return array_filter([
+        return array_filter(array_merge($existingState, [
             'sign_ins_last_seen_at' => $signInsCursor,
             'risk_detections_last_seen_at' => $riskDetectionsCursor,
-        ]);
+        ]), static fn ($value) => $value !== null);
+    }
+
+    private function dispatchPendingAnalysis(Integration $integration): void
+    {
+        ThreatEvent::query()
+            ->where('integration_id', $integration->id)
+            ->pendingAnalysis()
+            ->when(
+                data_get($integration->sync_state, 'last_sync_started_at'),
+                function (Builder $query, string $startedAt): void {
+                    $startedAtValue = Carbon::parse($startedAt);
+
+                    $query->where(function (Builder $builder) use ($startedAtValue): void {
+                        $builder->where('updated_at', '>=', $startedAtValue)
+                            ->orWhere('created_at', '>=', $startedAtValue);
+                    });
+                }
+            )
+            ->pluck('id')
+            ->each(fn (int $eventId) => AnalyzeThreatEvent::dispatch($eventId));
     }
 }

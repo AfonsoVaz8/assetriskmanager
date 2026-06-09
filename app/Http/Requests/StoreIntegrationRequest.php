@@ -32,6 +32,9 @@ class StoreIntegrationRequest extends FormRequest
             $rules['credentials.tenant_id'] = ['required', 'string', 'max:255'];
             $rules['credentials.client_id'] = ['required', 'string', 'max:255'];
             $rules['credentials.client_secret'] = ['required', 'string', 'max:4000'];
+            foreach ($this->analysisPolicyRules() as $key => $rule) {
+                $rules[$key] = $rule;
+            }
         }
 
         if ($provider === IntegrationProvider::SHODAN->value) {
@@ -50,5 +53,35 @@ class StoreIntegrationRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    private function analysisPolicyRules(): array
+    {
+        $keys = [
+            'severity_high_threshold',
+            'severity_medium_threshold',
+            'successful_signin_points',
+            'successful_external_signin_points',
+            'ip_reputation_high_points',
+            'ip_reputation_nonzero_points',
+            'unusual_country_points',
+            'sensitive_application_points',
+            'single_factor_auth_points',
+            'conditional_access_not_applied_points',
+            'missing_os_context_points',
+            'missing_browser_context_points',
+            'failure_then_success_points',
+            'graph_high_risk_points',
+            'graph_medium_risk_points',
+            'graph_low_risk_points',
+            'account_at_risk_points',
+            'confirmed_compromise_points',
+        ];
+
+        return collect($keys)
+            ->mapWithKeys(fn (string $key): array => [
+                "settings.analysis_policy.{$key}" => ['nullable', 'integer', 'min:0', 'max:1000'],
+            ])
+            ->all();
     }
 }

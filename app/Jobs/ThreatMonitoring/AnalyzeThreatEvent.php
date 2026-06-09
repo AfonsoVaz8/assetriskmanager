@@ -3,6 +3,7 @@
 namespace App\Jobs\ThreatMonitoring;
 
 use App\Domain\IncidentManagement\Services\IncidentService;
+use App\Domain\ThreatMonitoring\Services\IntegrationSyncStateService;
 use App\Domain\ThreatMonitoring\Services\ThreatAnalysisEngine;
 use App\Models\ThreatEvent;
 use Illuminate\Bus\Queueable;
@@ -25,6 +26,7 @@ class AnalyzeThreatEvent implements ShouldQueue
     public function handle(
         ThreatAnalysisEngine $analysisEngine,
         IncidentService $incidentService,
+        IntegrationSyncStateService $integrationSyncStateService,
     ): void {
         $event = ThreatEvent::query()->find($this->threatEventId);
 
@@ -43,5 +45,6 @@ class AnalyzeThreatEvent implements ShouldQueue
         ])->save();
 
         $incidentService->ingestEvent($event);
+        $integrationSyncStateService->refreshThreatProcessingState($event->integration_id);
     }
 }

@@ -1,16 +1,37 @@
 @php
     $existingCredentials = isset($integration) ? $integration->safeCredentials() : [];
     $selectedProvider = old('provider', $integration->provider ?? \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value);
+    $analysisPolicyDefaults = [
+        'severity_high_threshold' => data_get($integration ?? null, 'settings.analysis_policy.severity_high_threshold', 60),
+        'severity_medium_threshold' => data_get($integration ?? null, 'settings.analysis_policy.severity_medium_threshold', 30),
+        'successful_signin_points' => data_get($integration ?? null, 'settings.analysis_policy.successful_signin_points', 5),
+        'successful_external_signin_points' => data_get($integration ?? null, 'settings.analysis_policy.successful_external_signin_points', 10),
+        'ip_reputation_high_points' => data_get($integration ?? null, 'settings.analysis_policy.ip_reputation_high_points', 50),
+        'ip_reputation_nonzero_points' => data_get($integration ?? null, 'settings.analysis_policy.ip_reputation_nonzero_points', 25),
+        'unusual_country_points' => data_get($integration ?? null, 'settings.analysis_policy.unusual_country_points', 15),
+        'sensitive_application_points' => data_get($integration ?? null, 'settings.analysis_policy.sensitive_application_points', 15),
+        'single_factor_auth_points' => data_get($integration ?? null, 'settings.analysis_policy.single_factor_auth_points', 20),
+        'conditional_access_not_applied_points' => data_get($integration ?? null, 'settings.analysis_policy.conditional_access_not_applied_points', 15),
+        'missing_os_context_points' => data_get($integration ?? null, 'settings.analysis_policy.missing_os_context_points', 5),
+        'missing_browser_context_points' => data_get($integration ?? null, 'settings.analysis_policy.missing_browser_context_points', 5),
+        'failure_then_success_points' => data_get($integration ?? null, 'settings.analysis_policy.failure_then_success_points', 25),
+        'graph_high_risk_points' => data_get($integration ?? null, 'settings.analysis_policy.graph_high_risk_points', 70),
+        'graph_medium_risk_points' => data_get($integration ?? null, 'settings.analysis_policy.graph_medium_risk_points', 40),
+        'graph_low_risk_points' => data_get($integration ?? null, 'settings.analysis_policy.graph_low_risk_points', 15),
+        'account_at_risk_points' => data_get($integration ?? null, 'settings.analysis_policy.account_at_risk_points', 20),
+        'confirmed_compromise_points' => data_get($integration ?? null, 'settings.analysis_policy.confirmed_compromise_points', 25),
+    ];
     $settings = old('settings', [
         'trusted_countries' => implode(',', data_get($integration ?? null, 'settings.trusted_countries', [])),
         'trusted_networks' => implode(',', data_get($integration ?? null, 'settings.trusted_networks', [])),
         'detect_external_signins' => data_get($integration ?? null, 'settings.detect_external_signins', true),
         'detect_unusual_countries' => data_get($integration ?? null, 'settings.detect_unusual_countries', true),
         'notify_high_severity' => data_get($integration ?? null, 'settings.notify_high_severity', true),
+        'analysis_policy' => $analysisPolicyDefaults,
     ]);
 @endphp
 
-<div x-data="{ provider: '{{ $selectedProvider }}' }">
+<div x-data="{ provider: '{{ $selectedProvider }}', graphTab: 'connection' }">
 <div class="mb-6">
     <label for="name"
            class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __("Name") }}</label>
@@ -72,7 +93,24 @@
     <h3 class="text-lg font-semibold text-gray-900">{{ __("Provider Credentials") }}</h3>
 </div>
 
-<div x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}'">
+<div class="mb-6 mt-4" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}'">
+    <div class="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+        <button type="button"
+                @click="graphTab = 'connection'"
+                :class="graphTab === 'connection' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'"
+                class="rounded-lg px-4 py-2 text-sm font-medium transition">
+            {{ __("Connection") }}
+        </button>
+        <button type="button"
+                @click="graphTab = 'policy'"
+                :class="graphTab === 'policy' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'"
+                class="rounded-lg px-4 py-2 text-sm font-medium transition">
+            {{ __("Threat Policy") }}
+        </button>
+    </div>
+</div>
+
+<div x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'connection'">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="mb-6">
             <label for="credentials_tenant_id"
@@ -199,11 +237,12 @@
     </div>
 </div>
 
-<div class="border-t pt-6 mt-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}'">
+<div class="border-t pt-6 mt-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
     <h3 class="text-lg font-semibold text-gray-900">{{ __("Threat Policy Settings") }}</h3>
+    <p class="mt-2 text-sm text-gray-600">{{ __("Adjust these values to reflect how your organization interprets Microsoft 365 risk. The current defaults match the existing analysis behavior.") }}</p>
 </div>
 
-<div class="mb-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}'">
+<div class="mb-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
     <label for="settings_trusted_countries"
            class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __("Trusted Countries") }}</label>
     <input type="text" id="settings_trusted_countries" name="settings[trusted_countries]"
@@ -212,7 +251,7 @@
            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
 </div>
 
-<div class="mb-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}'">
+<div class="mb-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
     <label for="settings_trusted_networks"
            class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{ __("Trusted Networks") }}</label>
     <input type="text" id="settings_trusted_networks" name="settings[trusted_networks]"
@@ -221,7 +260,7 @@
            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
 </div>
 
-<div class="mb-6 flex items-center" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}'">
+<div class="mb-6 flex items-center" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
     <input type="hidden" name="settings[detect_external_signins]" value="0">
     <input type="checkbox" id="settings_detect_external_signins" name="settings[detect_external_signins]" value="1"
            @checked((bool) $settings['detect_external_signins'])
@@ -231,7 +270,7 @@
     </label>
 </div>
 
-<div class="mb-6 flex items-center" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}'">
+<div class="mb-6 flex items-center" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
     <input type="hidden" name="settings[detect_unusual_countries]" value="0">
     <input type="checkbox" id="settings_detect_unusual_countries" name="settings[detect_unusual_countries]" value="1"
            @checked((bool) $settings['detect_unusual_countries'])
@@ -241,7 +280,7 @@
     </label>
 </div>
 
-<div class="mb-6 flex items-center" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}'">
+<div class="mb-6 flex items-center" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
     <input type="hidden" name="settings[notify_high_severity]" value="0">
     <input type="checkbox" id="settings_notify_high_severity" name="settings[notify_high_severity]" value="1"
            @checked((bool) $settings['notify_high_severity'])
@@ -249,6 +288,43 @@
     <label for="settings_notify_high_severity" class="ml-2 text-sm text-gray-700">
         {{ __("Notify responsible users when severity is high") }}
     </label>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
+    <div class="mb-6">
+        <label class="block mb-2 text-sm font-medium text-gray-900">{{ __("High Severity Threshold") }}</label>
+        <input type="number" name="settings[analysis_policy][severity_high_threshold]" value="{{ data_get($settings, 'analysis_policy.severity_high_threshold', 60) }}" min="0" max="1000" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+    </div>
+    <div class="mb-6">
+        <label class="block mb-2 text-sm font-medium text-gray-900">{{ __("Medium Severity Threshold") }}</label>
+        <input type="number" name="settings[analysis_policy][severity_medium_threshold]" value="{{ data_get($settings, 'analysis_policy.severity_medium_threshold', 30) }}" min="0" max="1000" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
+    @foreach([
+        'successful_signin_points' => __('Successful Sign-In'),
+        'successful_external_signin_points' => __('Successful External Sign-In'),
+        'ip_reputation_high_points' => __('High IP Reputation Risk'),
+        'ip_reputation_nonzero_points' => __('Non-Zero IP Reputation Risk'),
+        'unusual_country_points' => __('Unusual Country'),
+        'sensitive_application_points' => __('Sensitive Application'),
+        'single_factor_auth_points' => __('Single-Factor Authentication'),
+        'conditional_access_not_applied_points' => __('Conditional Access Not Applied'),
+        'missing_os_context_points' => __('Missing Operating System Context'),
+        'missing_browser_context_points' => __('Missing Browser Context'),
+        'failure_then_success_points' => __('Failures Followed By Success'),
+        'graph_high_risk_points' => __('Graph High Risk'),
+        'graph_medium_risk_points' => __('Graph Medium Risk'),
+        'graph_low_risk_points' => __('Graph Low Risk'),
+        'account_at_risk_points' => __('Account At Risk'),
+        'confirmed_compromise_points' => __('Confirmed Compromise Signal'),
+    ] as $policyKey => $policyLabel)
+        <div class="mb-6">
+            <label class="block mb-2 text-sm font-medium text-gray-900">{{ $policyLabel }}</label>
+            <input type="number" name="settings[analysis_policy][{{ $policyKey }}]" value="{{ data_get($settings, 'analysis_policy.' . $policyKey) }}" min="0" max="1000" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        </div>
+    @endforeach
 </div>
 
 <button type="submit"
