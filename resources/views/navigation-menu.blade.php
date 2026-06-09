@@ -131,7 +131,7 @@
 
                             @if(Auth::user()->role == \App\Enums\UserRole::SECURITY_OFFICER)
                                 <x-dropdown-link :href="route('incidents.index')">
-                                    {{ __('Incidents') }}
+                                    {{ __('Alerts') }}
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('integrations.index')">
                                     {{ __('Integrations') }}

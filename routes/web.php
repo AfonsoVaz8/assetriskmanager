@@ -43,6 +43,8 @@ Route::middleware([
     'verified'
 ])->group(function () {
     Route::get("dashboard", DashboardController::class)->name("dashboard");
+    Route::get('dashboard/pending-m365-accounts', [DashboardController::class, 'pendingM365Accounts'])->name('dashboard.pending-m365-accounts');
+    Route::get('dashboard/pending-assets', [DashboardController::class, 'pendingAssets'])->name('dashboard.pending-assets');
     Route::resource("permanent-contact-points", PermanentContactPointController::class);
     Route::resource("security-officer", SecurityOfficerController::class);
     Route::resource("asset-types", AssetTypeController::class);
@@ -56,10 +58,10 @@ Route::middleware([
     Route::middleware("ensureSecurityOfficer")->group(function () {
         Route::get('threat-events', [ThreatEventController::class, 'index'])->name('threat-events.index');
         Route::get('threat-events/{threatEvent}', [ThreatEventController::class, 'show'])->name('threat-events.show');
-        Route::get('incidents', [IncidentController::class, 'index'])->name('incidents.index');
-        Route::get('incidents/{incident}', [IncidentController::class, 'show'])->name('incidents.show');
-        Route::patch('incidents/{incident}/status', [IncidentController::class, 'updateStatus'])->name('incidents.update-status');
-        Route::post('incidents/{incident}/reopen', [IncidentController::class, 'reopen'])->name('incidents.reopen');
+        Route::get('alerts', [IncidentController::class, 'index'])->name('incidents.index');
+        Route::get('alerts/{incident}', [IncidentController::class, 'show'])->name('incidents.show');
+        Route::patch('alerts/{incident}/status', [IncidentController::class, 'updateStatus'])->name('incidents.update-status');
+        Route::post('alerts/{incident}/reopen', [IncidentController::class, 'reopen'])->name('incidents.reopen');
         Route::post('integrations/{integration}/sync', [IntegrationController::class, 'sync'])->name('integrations.sync');
         Route::resource("integrations", IntegrationController::class);
         Route::post('attack-surface-scopes/{attack_surface_scope}/approve', [AttackSurfaceScopeController::class, 'approve'])->name('attack-surface-scopes.approve');

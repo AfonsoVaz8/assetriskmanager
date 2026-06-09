@@ -102,7 +102,7 @@ class IncidentController extends Controller
             'dismissed' => $incidentService->dismiss($incident, $request->user(), $request->input('resolution_note')),
         };
 
-        return redirect()->route('incidents.show', $incident)->with('status', __('Incident updated'));
+        return redirect()->route('incidents.show', $incident)->with('status', __('Alert updated'));
     }
 
     public function reopen(Request $request, Incident $incident, IncidentService $incidentService): RedirectResponse
@@ -111,6 +111,6 @@ class IncidentController extends Controller
 
         $incident = $incidentService->reopen($incident);
 
-        return redirect()->route('incidents.show', $incident)->with('status', __('Incident reopened'));
+        return redirect()->route('incidents.show', $incident)->with('status', __('Alert reopened'));
     }
 }

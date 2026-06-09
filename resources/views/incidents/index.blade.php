@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __("Incidents") }}</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __("Alerts") }}</h2>
     </x-slot>
 
     <div class="py-12">
@@ -88,7 +88,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-4 py-3 text-gray-500">{{ __("No incidents found.") }}</td>
+                                    <td colspan="8" class="px-4 py-3 text-gray-500">{{ __("No alerts found.") }}</td>
                                 </tr>
                             @endforelse
                             </tbody>

@@ -1,0 +1,590 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "options": {
+        "content": "### M365 Monitoring\nStart with the KPIs for recent event volume, then use the trend charts and top-account tables to identify which identities and source IPs are driving incident creation.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "11.1.0",
+      "title": "How To Read This Dashboard",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 150
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS value FROM threat_events te JOIN integrations i ON i.id = te.integration_id AND i.provider = 'microsoft_graph' WHERE te.occurred_at >= DATE_SUB(NOW(), INTERVAL 1 DAY);",
+          "refId": "A"
+        }
+      ],
+      "title": "Threat Events 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT COALESCE(NULLIF(TRIM(te.principal_display), ''), NULLIF(TRIM(te.principal), ''), 'Unknown')) AS value FROM threat_events te JOIN integrations i ON i.id = te.integration_id AND i.provider = 'microsoft_graph' WHERE te.occurred_at >= DATE_SUB(NOW(), INTERVAL 1 DAY);",
+          "refId": "A"
+        }
+      ],
+      "title": "Accounts 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(DISTINCT te.ip_address) AS value FROM threat_events te JOIN integrations i ON i.id = te.integration_id AND i.provider = 'microsoft_graph' WHERE te.occurred_at >= DATE_SUB(NOW(), INTERVAL 1 DAY) AND te.ip_address IS NOT NULL AND TRIM(te.ip_address) <> '';",
+          "refId": "A"
+        }
+      ],
+      "title": "Source IPs 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS value FROM incidents inc JOIN integrations i ON i.id = inc.integration_id AND i.provider = 'microsoft_graph' WHERE inc.status IN ('open', 'in_progress');",
+          "refId": "A"
+        }
+      ],
+      "title": "Open M365 Alerts",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT $__timeGroupAlias(te.occurred_at, '1h'), COUNT(*) AS value FROM threat_events te JOIN integrations i ON i.id = te.integration_id AND i.provider = 'microsoft_graph' WHERE $__timeFilter(te.occurred_at) GROUP BY 1 ORDER BY 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "All M365 Threat Events",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT $__timeGroupAlias(te.occurred_at, '1h'), SUM(CASE WHEN COALESCE(te.risk_level, '') <> '' OR COALESCE(te.risk_state, '') <> '' OR COALESCE(te.risk_detail, '') <> '' THEN 1 ELSE 0 END) AS value FROM threat_events te JOIN integrations i ON i.id = te.integration_id AND i.provider = 'microsoft_graph' WHERE $__timeFilter(te.occurred_at) GROUP BY 1 ORDER BY 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Risk-Signaled Events",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "id": 7,
+        "options": {
+          "legend": {
+            "displayMode": "hidden",
+            "showLegend": false
+          },
+          "orientation": "horizontal",
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT COALESCE(NULLIF(LOWER(te.country_code), ''), 'unknown') AS country, COUNT(*) AS event_count FROM threat_events te JOIN integrations i ON i.id = te.integration_id AND i.provider = 'microsoft_graph' WHERE te.country_code IS NOT NULL AND $__timeFilter(te.occurred_at) GROUP BY country ORDER BY event_count DESC LIMIT 10;",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Source Countries",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "hidden",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "table",
+          "rawQuery": true,
+            "rawSql": "SELECT COALESCE(NULLIF(LOWER(te.risk_level), ''), 'not_set') AS risk_level, COUNT(*) AS event_count FROM threat_events te JOIN integrations i ON i.id = te.integration_id AND i.provider = 'microsoft_graph' WHERE $__timeFilter(te.occurred_at) GROUP BY risk_level ORDER BY event_count DESC;",
+            "refId": "A"
+          }
+        ],
+        "title": "Risk Level Distribution",
+        "type": "barchart"
+      },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "id": 9,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT principal AS Account, priority_score AS PriorityScore, priority_reason AS PriorityReason, incident_count AS Incidents, threat_event_count AS Events, risky_event_count AS RiskSignals, failure_event_count AS Failures, avg_score AS AvgScore, max_score AS MaxScore, last_seen_at AS LastSeen FROM vw_grafana_m365_account_risk ORDER BY priority_score DESC, incident_count DESC, max_score DESC LIMIT 15;",
+          "refId": "A"
+        }
+      ],
+      "title": "Accounts To Investigate First",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "arm-mariadb"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "id": 10,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "arm-mariadb"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT ip_address AS SourceIP, priority_score AS PriorityScore, priority_reason AS PriorityReason, incident_count AS Incidents, principal_count AS Principals, high_severity_events AS HighSeverityEvents, threat_event_count AS Events, avg_score AS AvgScore, max_score AS MaxScore, last_seen_at AS LastSeen FROM vw_grafana_source_ip_risk ORDER BY priority_score DESC, incident_count DESC, max_score DESC LIMIT 15;",
+          "refId": "A"
+        }
+      ],
+      "title": "Source IPs To Investigate First",
+      "type": "table"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "arm",
+    "m365",
+    "graph"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "ARM M365 Monitoring",
+  "uid": "arm-m365-monitoring",
+  "version": 2,
+  "weekStart": ""
+}
