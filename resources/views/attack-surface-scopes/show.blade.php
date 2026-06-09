@@ -76,6 +76,16 @@
                             <dd class="mt-1 text-sm text-gray-900">{{ optional($scope->last_run_at)->toDateTimeString() ?? __('Never') }}</dd>
                         </div>
                         <div>
+                            <dt class="text-sm font-medium text-gray-500">{{ __('Discovery Method') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ \Illuminate\Support\Str::of((string) data_get($scope->settings, 'discovery.method', 'tcp_icmp'))->replace('_', ' + ')->upper() }}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">{{ __('TCP Probe Ports') }}</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ implode(', ', data_get($scope->settings, 'ports', [80, 443, 22])) }}</dd>
+                        </div>
+                        <div>
                             <dt class="text-sm font-medium text-gray-500">{{ __('Submitted By') }}</dt>
                             <dd class="mt-1 text-sm text-gray-900">{{ $scope->submittedBy?->name ?? __('Unknown') }}</dd>
                         </div>
@@ -193,7 +203,9 @@
                                                        form="enrich-selected-hosts-form"
                                                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                                             @else
-                                                <span class="text-xs text-gray-400">{{ __('Inactive') }}</span>
+                                                <span class="text-xs text-gray-400">
+                                                    {{ \Illuminate\Support\Str::of($host->status->value ?? $host->status)->replace('_', ' ')->title() }}
+                                                </span>
                                             @endif
                                         </td>
                                         <td class="px-4 py-3">

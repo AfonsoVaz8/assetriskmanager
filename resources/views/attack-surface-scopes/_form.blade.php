@@ -57,17 +57,37 @@
     </div>
 
     <div class="mb-6">
+        <label for="discovery_method" class="block mb-2 text-sm font-medium text-gray-900">{{ __('Discovery Method') }}</label>
+        <select id="discovery_method" name="settings[discovery][method]"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            <option value="tcp_icmp" @selected(data_get($settings, 'discovery.method', 'tcp_icmp') === 'tcp_icmp')>{{ __('TCP + ICMP (Recommended)') }}</option>
+            <option value="tcp_only" @selected(data_get($settings, 'discovery.method', 'tcp_icmp') === 'tcp_only')>{{ __('TCP Only') }}</option>
+            <option value="icmp_only" @selected(data_get($settings, 'discovery.method', 'tcp_icmp') === 'icmp_only')>{{ __('ICMP Only') }}</option>
+        </select>
+        <p class="mt-2 text-sm text-gray-500">{{ __('TCP checks whether the host is reachable through the configured ports. ICMP uses ping. A missing ICMP reply does not prove the host is inactive because many hosts or firewalls block ping.') }}</p>
+    </div>
+
+    <div class="mb-6">
         <label for="ports" class="block mb-2 text-sm font-medium text-gray-900">{{ __('Probe Ports') }}</label>
         <input type="text" id="ports" name="settings[ports]" value="{{ implode(',', data_get($settings, 'ports', [80, 443, 22])) }}"
                placeholder="80,443,22"
                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        <p class="mt-2 text-sm text-gray-500">{{ __('These ports are used for TCP-based discovery. A host can still be considered active through ICMP even if none of these ports are open.') }}</p>
     </div>
 
-    <div class="mb-6">
-        <label for="timeout_seconds" class="block mb-2 text-sm font-medium text-gray-900">{{ __('Timeout Seconds') }}</label>
-        <input type="number" step="0.1" min="0.2" max="3" id="timeout_seconds" name="settings[timeout_seconds]"
-               value="{{ data_get($settings, 'timeout_seconds', 1.0) }}"
-               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+            <label for="timeout_seconds" class="block mb-2 text-sm font-medium text-gray-900">{{ __('TCP Timeout Seconds') }}</label>
+            <input type="number" step="0.1" min="0.2" max="3" id="timeout_seconds" name="settings[timeout_seconds]"
+                   value="{{ data_get($settings, 'timeout_seconds', 1.0) }}"
+                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        </div>
+        <div>
+            <label for="discovery_icmp_timeout_seconds" class="block mb-2 text-sm font-medium text-gray-900">{{ __('ICMP Timeout Seconds') }}</label>
+            <input type="number" min="1" max="5" id="discovery_icmp_timeout_seconds" name="settings[discovery][icmp_timeout_seconds]"
+                   value="{{ data_get($settings, 'discovery.icmp_timeout_seconds', 1) }}"
+                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+        </div>
     </div>
 
     <div class="mb-6">

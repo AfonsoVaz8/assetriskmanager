@@ -25,6 +25,8 @@ class StoreAttackSurfaceScopeRequest extends FormRequest
             'scope_definition.cidr' => ['nullable', 'string', 'max:32'],
             'scope_definition.hostname' => ['nullable', 'string', 'max:255'],
             'scope_definition.domain' => ['nullable', 'string', 'max:255'],
+            'settings.discovery.method' => ['nullable', Rule::in(['tcp_only', 'icmp_only', 'tcp_icmp'])],
+            'settings.discovery.icmp_timeout_seconds' => ['nullable', 'integer', 'min:1', 'max:5'],
             'settings.ports' => ['nullable', 'string', 'max:255'],
             'settings.timeout_seconds' => ['nullable', 'numeric', 'min:0.2', 'max:3'],
             'settings.auto_create_assets' => ['nullable', 'boolean'],

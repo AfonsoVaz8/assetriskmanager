@@ -9,7 +9,7 @@ ENV TZ=${TIMEZONE} LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 COMPOSE
 
 COPY --from=composer:2  /usr/bin/composer /usr/bin/composer
 
-RUN apt-get -qq update && apt-get -qq -y install --no-install-recommends locales git unzip nmap build-essential \
+RUN apt-get -qq update && apt-get -qq -y install --no-install-recommends locales git unzip nmap iputils-ping build-essential \
     libzip-dev libicu-dev libonig-dev libpng-dev libldap2-dev libxml2 libxml2-dev libcurl4-openssl-dev libreadline-dev \
     libjson-perl libxml-writer-perl libnet-ssleay-perl libio-socket-ssl-perl \
     libkrb5-dev libc-client-dev libpq-dev libsqlite3-dev zlib1g-dev vim nano ca-certificates curl gnupg

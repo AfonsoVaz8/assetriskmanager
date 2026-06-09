@@ -409,6 +409,12 @@ class AttackSurfaceScopeController extends Controller
                 default => ['registered_assets' => true],
             },
             'settings' => [
+                'discovery' => [
+                    'method' => in_array(data_get($request->input('settings', []), 'discovery.method'), ['tcp_only', 'icmp_only', 'tcp_icmp'], true)
+                        ? data_get($request->input('settings', []), 'discovery.method')
+                        : 'tcp_icmp',
+                    'icmp_timeout_seconds' => max(1, min((int) data_get($request->input('settings', []), 'discovery.icmp_timeout_seconds', 1), 5)),
+                ],
                 'ports' => !empty($portList) ? $portList : [80, 443, 22],
                 'timeout_seconds' => (float) data_get($request->input('settings', []), 'timeout_seconds', 1.0),
                 'auto_create_assets' => $autoCreateAssets,

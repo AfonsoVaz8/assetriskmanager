@@ -43,7 +43,7 @@ class AttackSurfaceDiscoveryService
 
         return $scope->runs()->create([
             'status' => AttackSurfaceRunStatus::QUEUED,
-            'strategy' => 'safe_tcp_discovery',
+            'strategy' => 'safe_multi_signal_discovery',
             'target_count' => count($targets),
             'config_snapshot' => array_merge($config, [
                 'resolved_targets' => $targets,
@@ -68,6 +68,8 @@ class AttackSurfaceDiscoveryService
         $config = $this->buildRunConfig($scope);
         $ports = Arr::get($config, 'ports', self::DEFAULT_PORTS);
         $timeout = (float) Arr::get($config, 'timeout_seconds', 1.0);
+        $discoveryMethod = (string) Arr::get($config, 'discovery.method', 'tcp_icmp');
+        $icmpTimeout = (int) Arr::get($config, 'discovery.icmp_timeout_seconds', 1);
 
         $activeHosts = 0;
         $createdAssets = 0;
@@ -83,7 +85,13 @@ class AttackSurfaceDiscoveryService
 
         foreach ($targets as $target) {
             try {
-                $result = $this->probe->probe($target['ip_address'], $ports, $timeout);
+                $result = $this->probe->probe(
+                    $target['ip_address'],
+                    $ports,
+                    $timeout,
+                    $discoveryMethod,
+                    $icmpTimeout
+                );
                 $asset = Asset::query()->where('ip_address', $target['ip_address'])->first();
                 $wasAutoCreated = false;
 
@@ -128,7 +136,7 @@ class AttackSurfaceDiscoveryService
                         'fqdn' => $fqdn,
                         'status' => $result['status'],
                         'origin' => $target['origin'],
-                        'discovery_method' => 'safe_tcp_probe',
+                        'discovery_method' => $discoveryMethod,
                         'open_ports' => $result['open_ports'],
                         'was_auto_created' => $wasAutoCreated,
                         'first_seen_at' => now(),
@@ -138,7 +146,8 @@ class AttackSurfaceDiscoveryService
                             'ip' => $target['ip_address'],
                             'hostnames' => $hostnames,
                             'open_ports' => $result['open_ports'],
-                            'source' => 'safe_tcp_probe',
+                            'probe_signals' => $result['signals'] ?? [],
+                            'source' => 'safe_multi_signal_probe',
                         ],
                         'normalized_payload' => $normalized,
                     ]
@@ -160,13 +169,13 @@ class AttackSurfaceDiscoveryService
                         'fqdn' => $target['fqdn'] ?? null,
                         'status' => 'error',
                         'origin' => $target['origin'],
-                        'discovery_method' => 'safe_tcp_probe',
+                        'discovery_method' => $discoveryMethod,
                         'error' => $exception->getMessage(),
                         'last_seen_at' => now(),
                         'raw_payload' => [
                             'ip' => $target['ip_address'],
                             'hostnames' => $target['hostnames'] ?? [],
-                            'source' => 'safe_tcp_probe',
+                            'source' => 'safe_multi_signal_probe',
                         ],
                         'normalized_payload' => null,
                     ]
@@ -358,6 +367,12 @@ class AttackSurfaceDiscoveryService
         return [
             'ports' => !empty($ports) ? $ports : self::DEFAULT_PORTS,
             'timeout_seconds' => max(0.2, min((float) Arr::get($settings, 'timeout_seconds', 1.0), 3.0)),
+            'discovery' => [
+                'method' => in_array(Arr::get($settings, 'discovery.method'), ['tcp_only', 'icmp_only', 'tcp_icmp'], true)
+                    ? Arr::get($settings, 'discovery.method')
+                    : 'tcp_icmp',
+                'icmp_timeout_seconds' => max(1, min((int) Arr::get($settings, 'discovery.icmp_timeout_seconds', 1), 5)),
+            ],
             'auto_create_assets' => (bool) Arr::get($settings, 'auto_create_assets', false),
             'auto_create_asset_type_id' => Arr::get($settings, 'auto_create_asset_type_id'),
             'auto_create_manager_id' => Arr::get($settings, 'auto_create_manager_id'),
