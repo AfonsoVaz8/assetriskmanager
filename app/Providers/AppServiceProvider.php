@@ -35,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Asset::observe(AssetObserver::class);
+
         try {
             if (Schema::hasTable('settings')) {
                 $settings = Setting::where('key', 'like', 'mail_%')->pluck('value', 'key')->toArray();
@@ -53,9 +55,6 @@ class AppServiceProvider extends ServiceProvider
                     } else {
                         Config::set('mail.mailers.smtp.password', null);
                     }
-        Asset::observe(AssetObserver::class);
-    }
-}
 
                     Config::set('mail.from.address', $settings['mail_from_address'] ?? config('mail.from.address'));
                     Config::set('mail.from.name', $settings['mail_from_name'] ?? config('mail.from.name'));
