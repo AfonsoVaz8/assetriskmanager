@@ -19,7 +19,7 @@ RUN docker-php-ext-configure opcache --enable-opcache && docker-php-ext-install 
 RUN docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd && docker-php-ext-install -j$(nproc) pdo_mysql
 RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl && docker-php-ext-install -j$(nproc) imap
 RUN docker-php-ext-configure intl && docker-php-ext-install -j$(nproc) intl
-RUN docker-php-ext-install -j$(nproc) pdo pdo_pgsql pdo_sqlite zip bcmath gd ldap soap curl mbstring xml
+RUN docker-php-ext-install -j$(nproc) pdo pdo_pgsql pdo_sqlite zip bcmath gd ldap soap curl mbstring xml sockets
 RUN composer config -g process-timeout 3600 && composer config -g repos.packagist composer https://packagist.org
 
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"

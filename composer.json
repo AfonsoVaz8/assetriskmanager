@@ -8,6 +8,7 @@
   "license": "AGPL-3.0-or-later",
   "require": {
     "php": "^8.3",
+    "ext-ldap": "*",
     "ext-pdo": "*",
     "directorytree/ldaprecord-laravel": "^v3.3.5",
     "guzzlehttp/guzzle": "^7.9.2",
@@ -17,8 +18,7 @@
     "laravel/tinker": "^v2.10.0",
     "livewire/livewire": "^v3.5.12",
     "maatwebsite/excel": "^3.1.60",
-    "php-amqplib/php-amqplib": "^3.0",
-    "ext-ldap": "*"
+    "php-amqplib/php-amqplib": "^3.0"
   },
   "require-dev": {
     "fakerphp/faker": "^v1.24.0",
