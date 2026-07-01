@@ -1,0 +1,52 @@
+flowchart TB
+
+subgraph Client[User Access]
+  Browser[Web Browser]
+end
+
+subgraph AppServer[ARM Application Server]
+  Nginx[Nginx Web Server]
+  Laravel[Laravel Application]
+  Worker[Queue Worker]
+  Grafana[Grafana Dashboards]
+end
+
+subgraph DataLayer[Persistence]
+  MariaDB[(MariaDB)]
+end
+
+subgraph ExternalSources[External Sources]
+  Graph[Microsoft Graph API]
+  Shodan[Shodan API]
+end
+
+subgraph Scanning[Discovery and Enrichment Tooling]
+  Nmap[Nmap]
+  Nuclei[Nuclei]
+  Subfinder[Subfinder]
+  Nikto[Nikto]
+end
+
+Browser --> Nginx
+Nginx --> Laravel
+Laravel --> MariaDB
+Worker --> MariaDB
+Laravel --> Worker
+Laravel --> Grafana
+
+Laravel --> Graph
+Laravel --> Shodan
+Worker --> Graph
+Worker --> Shodan
+
+Worker --> Nmap
+Worker --> Nuclei
+Worker --> Subfinder
+Worker --> Nikto
+
+Nmap --> Worker
+Nuclei --> Worker
+Subfinder --> Worker
+Nikto --> Worker
+
+Grafana --> MariaDB

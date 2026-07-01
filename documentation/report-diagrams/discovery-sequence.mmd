@@ -1,0 +1,43 @@
+sequenceDiagram
+    autonumber
+    actor Analyst as Security Officer / SOC
+    participant UI as Web Interface
+    participant Controller as AttackSurfaceScopeController
+    participant Job as RunAttackSurfaceDiscovery Job
+    participant Service as AttackSurfaceDiscoveryService
+    participant Probe as SafeHostDiscoveryProbe / Subfinder
+    participant DB as MariaDB
+
+    Analyst->>UI: Start discovery for approved scope
+    UI->>Controller: POST /attack-surface-scopes/{id}/run
+    Controller->>Service: createRun(scope)
+    Service->>DB: Persist AttackSurfaceRun (queued)
+    Service-->>Controller: return run metadata
+    Controller->>Job: dispatch(run id)
+    Controller-->>UI: acknowledge queued discovery
+
+    Job->>Service: executeRun(run)
+    Service->>DB: Mark run as running
+    Service->>Service: Resolve targets from scope type
+
+    alt Domain expansion scope
+        Service->>Probe: Enumerate subdomains with Subfinder
+        Probe-->>Service: Resolved hostnames and IPs
+    else CIDR / hostname / registered assets
+        Service->>Service: Build target list directly
+    end
+
+    loop For each resolved target
+        Service->>Probe: Probe target with TCP / ICMP strategy
+        Probe-->>Service: Host status and open ports
+        Service->>DB: Upsert DiscoveredHost
+
+        opt Auto-create asset enabled
+            Service->>DB: Create or link Asset
+            Service->>DB: Register AssetLog
+        end
+    end
+
+    Service->>DB: Mark run as completed / partial
+    Service-->>Job: return run summary
+    Job-->>UI: Discovery becomes available in UI

@@ -1,0 +1,49 @@
+flowchart TB
+
+subgraph Users[Access Layer]
+  Analyst[Security Analyst / SOC]
+  Admin[Administrator]
+end
+
+subgraph WebASR01[webasr01 - ARM application server]
+  Browser[Web access]
+  Nginx[Nginx]
+  Laravel[Laravel ARM]
+  Worker[Queue Worker]
+  Grafana[Grafana]
+  DB[(MariaDB)]
+end
+
+subgraph WRKNDDEV[wrknddev - scanning worker server]
+  RemoteWorker[Remote Scan Worker / Orchestrator]
+  Nmap[Nmap]
+  Nuclei[Nuclei]
+  Subfinder[Subfinder]
+  Nikto[Nikto]
+end
+
+subgraph RabbitMQDEV[rabbitmqdev - messaging server]
+  Rabbit[(RabbitMQ)]
+end
+
+Analyst --> Browser
+Admin --> Browser
+Browser --> Nginx
+Nginx --> Laravel
+Laravel --> DB
+Worker --> DB
+Grafana --> DB
+
+Laravel -. sync / enrichment requests .-> Rabbit
+Worker -. local async jobs .-> Rabbit
+Rabbit -. scan jobs .-> RemoteWorker
+
+RemoteWorker --> Nmap
+RemoteWorker --> Nuclei
+RemoteWorker --> Subfinder
+RemoteWorker --> Nikto
+
+RemoteWorker -. results / status .-> Rabbit
+Rabbit -. normalized results .-> Laravel
+
+Laravel --> Grafana

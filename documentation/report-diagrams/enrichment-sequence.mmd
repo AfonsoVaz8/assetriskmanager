@@ -1,0 +1,49 @@
+sequenceDiagram
+    autonumber
+    actor Analyst as Security Officer / SOC
+    participant UI as Web Interface
+    participant Controller as AttackSurfaceScopeController
+    participant Job as EnrichDiscoveredHost Job
+    participant Enrichment as DiscoveredHostEnrichmentService
+    participant Integration as Shodan / Generic IP Integration
+    participant Nmap as NmapScannerService
+    participant Nuclei as NucleiScannerService
+    participant Sync as Finding / Threat Sync Services
+    participant Vuln as VulnerabilityIntelligenceService
+    participant DB as MariaDB
+
+    Analyst->>UI: Trigger enrichment for one or more hosts
+    UI->>Controller: POST enrichment action
+    Controller->>Job: dispatch host enrichment job(s)
+    Controller-->>UI: acknowledge queued enrichment
+
+    Job->>Enrichment: enrich(host)
+    Enrichment->>DB: Create enrichment run (running)
+
+    opt External integration configured
+        Enrichment->>Integration: Fetch passive host intelligence
+        Integration-->>Enrichment: Raw payload
+        Enrichment->>Vuln: Enrich CVEs with NVD intelligence
+        Vuln-->>Enrichment: Normalized vulnerabilities
+        Enrichment->>DB: Persist normalized integration run
+    end
+
+    opt Nmap enabled
+        Enrichment->>Nmap: scan(host)
+        Nmap->>Vuln: Enrich detected CVEs
+        Vuln-->>Nmap: Normalized vulnerability details
+        Nmap-->>Enrichment: Nmap normalized payload
+    end
+
+    opt Nuclei enabled
+        Enrichment->>Nuclei: scan(host)
+        Nuclei->>Vuln: Enrich detected CVEs
+        Vuln-->>Nuclei: Normalized vulnerability details
+        Nuclei-->>Enrichment: Nuclei normalized payload
+    end
+
+    Enrichment->>Sync: Sync findings, threats and asset exposure
+    Sync->>DB: Update discovered host findings
+    Sync->>DB: Update related asset and external exposure
+    Enrichment->>DB: Finalize enrichment run
+    Job-->>UI: Enriched host details available

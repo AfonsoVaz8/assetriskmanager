@@ -1,0 +1,132 @@
+classDiagram
+direction LR
+
+class User {
+  +id
+  +name
+  +email
+  +role
+}
+
+class Asset {
+  +id
+  +name
+  +type
+  +status
+  +priority_score
+  +detected_cpe
+}
+
+class AssetType {
+  +id
+  +name
+}
+
+class AttackSurfaceScope {
+  +id
+  +name
+  +scope_type
+  +target
+  +status
+  +discovery_method
+}
+
+class DiscoveredHost {
+  +id
+  +hostname_or_ip
+  +status
+  +host_type
+  +last_seen_at
+  +reputation_score
+}
+
+class HostEnrichment {
+  +id
+  +operating_system
+  +organization
+  +isp
+  +asn
+  +location
+}
+
+class OpenService {
+  +id
+  +port
+  +protocol
+  +service
+  +product
+  +version
+  +state
+}
+
+class DetectedTechnology {
+  +id
+  +name
+  +category
+  +version
+}
+
+class TlsCertificate {
+  +id
+  +common_name
+  +issuer
+  +valid_from
+  +valid_to
+  +fingerprint
+}
+
+class ObservedCpe {
+  +id
+  +cpe_uri
+  +source
+  +confidence
+}
+
+class VulnerabilityFinding {
+  +id
+  +cve
+  +cvss
+  +epss
+  +kev
+  +severity
+}
+
+class Integration {
+  +id
+  +name
+  +provider
+  +status
+}
+
+class ThreatEvent {
+  +id
+  +provider_event_id
+  +category
+  +severity
+  +status
+  +occurred_at
+}
+
+class Alert {
+  +id
+  +title
+  +severity
+  +status
+  +event_count
+}
+
+User "1" --> "0..*" Asset : manages
+AssetType "1" --> "0..*" Asset : classifies
+AttackSurfaceScope "1" --> "0..*" DiscoveredHost : discovers
+DiscoveredHost "1" --> "0..1" Asset : linked_to
+DiscoveredHost "1" --> "0..*" HostEnrichment : has
+HostEnrichment "1" --> "0..*" OpenService : contains
+HostEnrichment "1" --> "0..*" DetectedTechnology : contains
+HostEnrichment "1" --> "0..*" TlsCertificate : contains
+Asset "1" --> "0..*" ObservedCpe : has
+Asset "1" --> "0..*" VulnerabilityFinding : affected_by
+DiscoveredHost "1" --> "0..*" VulnerabilityFinding : exposes
+Integration "1" --> "0..*" ThreatEvent : collects
+ThreatEvent "0..*" --> "0..1" Asset : relates_to
+ThreatEvent "0..*" --> "0..1" User : relates_to_identity
+Alert "1" --> "1..*" ThreatEvent : aggregates

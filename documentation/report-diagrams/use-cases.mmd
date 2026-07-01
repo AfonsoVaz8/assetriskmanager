@@ -1,0 +1,44 @@
+flowchart LR
+
+Admin[Administrator]
+Soc[Security Officer / SOC]
+User[Organizational User]
+
+subgraph ARM[AssetRiskManager]
+  UC1((Manage users and roles))
+  UC2((Manage assets))
+  UC3((View asset details))
+  UC4((Create attack surface scopes))
+  UC5((Run discovery))
+  UC6((Run enrichment))
+  UC7((Link discovered host to asset))
+  UC8((Manage integrations))
+  UC9((Sync Microsoft Graph and external data))
+  UC10((Review alerts and threat events))
+  UC11((Consult dashboards))
+  UC12((Export and report))
+end
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC8
+Admin --> UC11
+
+Soc --> UC2
+Soc --> UC3
+Soc --> UC4
+Soc --> UC5
+Soc --> UC6
+Soc --> UC7
+Soc --> UC8
+Soc --> UC9
+Soc --> UC10
+Soc --> UC11
+Soc --> UC12
+
+User --> UC2
+User --> UC3
+
+UC5 --> UC6
+UC6 --> UC7
+UC9 --> UC10
