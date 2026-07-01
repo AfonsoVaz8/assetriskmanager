@@ -27,6 +27,11 @@
         'detect_external_signins' => data_get($integration ?? null, 'settings.detect_external_signins', true),
         'detect_unusual_countries' => data_get($integration ?? null, 'settings.detect_unusual_countries', true),
         'notify_high_severity' => data_get($integration ?? null, 'settings.notify_high_severity', true),
+        'retention' => [
+            'enabled' => data_get($integration ?? null, 'settings.retention.enabled', false),
+            'days' => data_get($integration ?? null, 'settings.retention.days', 90),
+            'cleanup_interval_hours' => data_get($integration ?? null, 'settings.retention.cleanup_interval_hours', 24),
+        ],
         'analysis_policy' => $analysisPolicyDefaults,
     ]);
 @endphp
@@ -288,6 +293,34 @@
     <label for="settings_notify_high_severity" class="ml-2 text-sm text-gray-700">
         {{ __("Notify responsible users when severity is high") }}
     </label>
+</div>
+
+<div class="border rounded-xl border-slate-200 bg-slate-50/60 p-4 mb-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">
+    <div class="flex items-center">
+        <input type="hidden" name="settings[retention][enabled]" value="0">
+        <input type="checkbox" id="settings_retention_enabled" name="settings[retention][enabled]" value="1"
+               @checked((bool) data_get($settings, 'retention.enabled', false))
+               class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+        <label for="settings_retention_enabled" class="ml-2 text-sm font-medium text-slate-800">
+            {{ __("Enable retention cleanup for stored M365 threat data") }}
+        </label>
+    </div>
+    <p class="mt-2 text-sm text-slate-600">
+        {{ __("Threat events, related payloads and alerts with no remaining events will be removed automatically according to the policy below.") }}
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900">{{ __("Retention Period (days)") }}</label>
+            <input type="number" name="settings[retention][days]" value="{{ data_get($settings, 'retention.days', 90) }}" min="1" max="3650" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            <p class="mt-2 text-xs text-slate-500">{{ __("Threat events older than this period become eligible for deletion.") }}</p>
+        </div>
+        <div>
+            <label class="block mb-2 text-sm font-medium text-gray-900">{{ __("Cleanup Interval (hours)") }}</label>
+            <input type="number" name="settings[retention][cleanup_interval_hours]" value="{{ data_get($settings, 'retention.cleanup_interval_hours', 24) }}" min="1" max="8760" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            <p class="mt-2 text-xs text-slate-500">{{ __("Defines how often the platform should execute the retention cleanup for this integration.") }}</p>
+        </div>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6" x-show="provider === '{{ \App\Domain\ThreatMonitoring\Enums\IntegrationProvider::MICROSOFT_GRAPH->value }}' && graphTab === 'policy'">

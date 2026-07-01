@@ -84,6 +84,7 @@ class IntegrationController extends Controller
             'syncStatus' => 'idle',
             'syncStatusClass' => 'bg-slate-100 text-slate-700',
             'analysisPolicy' => data_get($integration->settings, 'analysis_policy', []),
+            'retentionPolicy' => data_get($integration->settings, 'retention', []),
         ];
 
         if ($viewState['isGraph']) {
@@ -439,6 +440,11 @@ class IntegrationController extends Controller
             'detect_external_signins' => $request->boolean('settings.detect_external_signins', true),
             'detect_unusual_countries' => $request->boolean('settings.detect_unusual_countries', true),
             'notify_high_severity' => $request->boolean('settings.notify_high_severity', true),
+            'retention' => [
+                'enabled' => $request->boolean('settings.retention.enabled', false),
+                'days' => max(1, (int) $request->input('settings.retention.days', 90)),
+                'cleanup_interval_hours' => max(1, (int) $request->input('settings.retention.cleanup_interval_hours', 24)),
+            ],
             'analysis_policy' => array_filter([
                 'severity_high_threshold' => $request->input('settings.analysis_policy.severity_high_threshold'),
                 'severity_medium_threshold' => $request->input('settings.analysis_policy.severity_medium_threshold'),

@@ -177,6 +177,12 @@
                             <div><p class="text-sm font-medium text-slate-500">{{ __('External Sign-In Detection') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->settings, 'detect_external_signins', true) ? __('Enabled') : __('Disabled') }}</p></div>
                             <div><p class="text-sm font-medium text-slate-500">{{ __('Unusual Country Detection') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->settings, 'detect_unusual_countries', true) ? __('Enabled') : __('Disabled') }}</p></div>
                             <div><p class="text-sm font-medium text-slate-500">{{ __('Notify on High Severity') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->settings, 'notify_high_severity', true) ? __('Yes') : __('No') }}</p></div>
+                            <div><p class="text-sm font-medium text-slate-500">{{ __('Retention Cleanup') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->settings, 'retention.enabled', false) ? __('Enabled') : __('Disabled') }}</p></div>
+                            <div><p class="text-sm font-medium text-slate-500">{{ __('Retention Period') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->settings, 'retention.days', 90) }} {{ __('days') }}</p></div>
+                            <div><p class="text-sm font-medium text-slate-500">{{ __('Cleanup Interval') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->settings, 'retention.cleanup_interval_hours', 24) }} {{ __('hours') }}</p></div>
+                            <div><p class="text-sm font-medium text-slate-500">{{ __('Last Retention Cleanup') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->sync_state, 'last_retention_cleanup_at', __('Never')) }}</p></div>
+                            <div><p class="text-sm font-medium text-slate-500">{{ __('Last Deleted Threat Events') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->sync_state, 'last_retention_cleanup_deleted_events', 0) }}</p></div>
+                            <div><p class="text-sm font-medium text-slate-500">{{ __('Last Deleted Alerts') }}</p><p class="mt-1 text-sm text-slate-900">{{ data_get($integration->sync_state, 'last_retention_cleanup_deleted_alerts', 0) }}</p></div>
                         </div>
                     </section>
 

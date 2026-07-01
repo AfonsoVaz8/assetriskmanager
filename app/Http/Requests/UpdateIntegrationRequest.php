@@ -26,6 +26,9 @@ class UpdateIntegrationRequest extends FormRequest
             'settings.detect_external_signins' => ['nullable', 'boolean'],
             'settings.detect_unusual_countries' => ['nullable', 'boolean'],
             'settings.notify_high_severity' => ['nullable', 'boolean'],
+            'settings.retention.enabled' => ['nullable', 'boolean'],
+            'settings.retention.days' => ['nullable', 'integer', 'min:1', 'max:3650'],
+            'settings.retention.cleanup_interval_hours' => ['nullable', 'integer', 'min:1', 'max:8760'],
         ];
 
         if ($provider === IntegrationProvider::MICROSOFT_GRAPH->value) {

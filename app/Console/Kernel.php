@@ -22,6 +22,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('threat-integrations:sync')
             ->everyFiveMinutes()
             ->withoutOverlapping();
+
+        $schedule->command('threat-integrations:prune-retention')
+            ->hourly()
+            ->withoutOverlapping();
     }
 
     /**

@@ -23,16 +23,16 @@ class IntegrationPolicy
 
     public function create(User $user): bool
     {
-        return $user->role === UserRole::SECURITY_OFFICER;
+        return in_array($user->role, [UserRole::SECURITY_OFFICER, UserRole::ADMINISTRATOR], true);
     }
 
     public function update(User $user, Integration $integration): bool
     {
-        return $user->role === UserRole::SECURITY_OFFICER;
+        return in_array($user->role, [UserRole::SECURITY_OFFICER, UserRole::ADMINISTRATOR], true);
     }
 
     public function delete(User $user, Integration $integration): bool
     {
-        return $user->role === UserRole::SECURITY_OFFICER;
+        return in_array($user->role, [UserRole::SECURITY_OFFICER, UserRole::ADMINISTRATOR], true);
     }
 }
